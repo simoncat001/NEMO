@@ -202,7 +202,7 @@ urls_to_skip = [
 
 class URLsTestCase(NEMOTestCaseMixin, TransactionTestCase):
     reset_sequences = True
-    fixtures = ["resources/fixtures/splash_pad.json"]
+    fixtures = ["backend/resources/fixtures/splash_pad.json"]
 
     @classmethod
     def setUpTestData(cls):

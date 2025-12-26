@@ -11,15 +11,15 @@ RUN mkdir /nemo/media
 RUN mkdir /nemo/systemd
 WORKDIR /nemo
 
-COPY resources/icons/ /nemo/media
-COPY resources/people/ /nemo/media/
-COPY resources/sounds/ /nemo/media/
-COPY resources/images/ /nemo/media/
-COPY resources/emails/ /nemo/media/
-COPY resources/systemd/ /nemo/systemd/
-COPY resources/splash_pad_rates.json /nemo/media/rates.json
-COPY resources/splash_pad_settings.py /nemo/
-COPY resources/fixtures/splash_pad.json /nemo/
+COPY backend/resources/icons/ /nemo/media
+COPY backend/resources/people/ /nemo/media/
+COPY backend/resources/sounds/ /nemo/media/
+COPY backend/resources/images/ /nemo/media/
+COPY backend/resources/emails/ /nemo/media/
+COPY backend/resources/systemd/ /nemo/systemd/
+COPY backend/resources/splash_pad_rates.json /nemo/media/rates.json
+COPY backend/resources/splash_pad_settings.py /nemo/
+COPY backend/resources/fixtures/splash_pad.json /nemo/
 
 ENV DJANGO_SETTINGS_MODULE="splash_pad_settings"
 ENV PYTHONPATH="/nemo/"

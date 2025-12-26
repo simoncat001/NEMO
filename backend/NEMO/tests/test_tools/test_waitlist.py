@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
@@ -13,8 +15,11 @@ from NEMO.views.tool_control import do_exit_wait_list
 class ToolWaitListTestCase(NEMOTestCaseMixin, TestCase):
     def setUp(self) -> None:
         EmailsCustomization.set("user_office_email_address", "user_office_email_address@wait_list_test.com")
+        template_path = (
+            Path(__file__).resolve().parents[3] / "resources" / "emails" / "tool_wait_list_notification_email.html"
+        )
         store_media_file(
-            open("resources/emails/tool_wait_list_notification_email.html", "r"), "wait_list_notification_email.html"
+            open(template_path, "r"), "wait_list_notification_email.html"
         )
 
     def tearDown(self):

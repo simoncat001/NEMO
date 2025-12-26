@@ -1,9 +1,12 @@
 venv
-NEMO/settings.py
+backend/NEMO/settings.py
 documentation
 .git
 conf
 build
 __pycache__
-resources/fixtures/*
-!resources/fixtures/splash_pad.json
+ui/node_modules
+ui/dist
+ui/.vite
+backend/resources/fixtures/*
+!backend/resources/fixtures/splash_pad.json

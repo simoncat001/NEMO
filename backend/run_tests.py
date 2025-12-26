@@ -12,5 +12,5 @@ if __name__ == "__main__":
     django.setup()
     TestRunner = get_runner(settings)
     test_runner = TestRunner(interactive=False)
-    failures = test_runner.run_tests(["NEMO/tests"])
+    failures = test_runner.run_tests(["NEMO.tests"])
     sys.exit(bool(failures))

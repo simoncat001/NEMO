@@ -48,6 +48,45 @@ If you're interested in deploying NEMO at your organization, there are [deployme
 
 The [community page](https://github.com/usnistgov/NEMO/wiki/Community) outlines how to ask questions and contribute to NEMO. Bugs can be reported to the [issues page](https://github.com/usnistgov/NEMO/issues). If you've found a security issue with NEMO then please read our [security policy](https://github.com/usnistgov/NEMO/wiki/Security-policy) and tell us discretely.
 
+# Development
+
+## Backend (Django)
+
+Backend source code now lives in `backend/`. Provide your Django settings module (for example, `settings.py` at the repo root or a custom module via `DJANGO_SETTINGS_MODULE`) before starting the server.
+
+```bash
+python backend/manage.py runserver 0.0.0.0:8000
+```
+
+The backend listens on `http://localhost:8000` by default.
+
+## Frontend (UI)
+
+The new UI workspace lives in `ui/` and uses Vite.
+
+```bash
+cd ui
+npm install
+npm run dev
+```
+
+The UI dev server listens on `http://localhost:5173`.
+
+To create production assets:
+
+```bash
+cd ui
+npm run build
+```
+
+## Unified local startup
+
+Use the root script to launch both servers (requires a valid backend settings module and Node dependencies):
+
+```bash
+./start_dev.sh
+```
+
 # Screenshots
 
 Here are some sample screenshots showing some of NEMO's primary features.

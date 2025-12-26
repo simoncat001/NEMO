@@ -23,10 +23,10 @@ ENV GUNICORN_CAPTURE_OUTPUT=""
 # NEMO extra python packages
 ENV NEMO_EXTRA_PIP_PACKAGES=""
 
-COPY gunicorn_configuration.py /etc/
+COPY backend/gunicorn_configuration.py /etc/
 
 EXPOSE 8000/tcp
 
-COPY start_NEMO_in_Docker.sh /usr/local/bin/
+COPY backend/start_NEMO_in_Docker.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/start_NEMO_in_Docker.sh
 CMD ["start_NEMO_in_Docker.sh"]

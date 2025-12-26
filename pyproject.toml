@@ -51,7 +51,11 @@ dev-tools = ["pre-commit", "djlint", "black"]
 [project.scripts]
 nemo = "NEMO.provisioning:entry_point"
 
+[tool.setuptools]
+package-dir = {"" = "backend"}
+
 [tool.setuptools.packages.find]
+where = ["backend"]
 include = ["NEMO*"]
 exclude = ["resources", "resources.*", "build", "build.*"]
 
