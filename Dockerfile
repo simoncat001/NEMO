@@ -5,7 +5,7 @@ RUN apt-get install -y less vim
 
 # Intall NEMO (in the current directory) and Gunicorn
 COPY . /nemo/
-RUN python3 -m pip install /nemo/ gunicorn==23.0.0
+RUN python3 -m pip install /nemo/backend gunicorn==23.0.0
 RUN rm --recursive --force /nemo/
 
 RUN mkdir /nemo
@@ -23,7 +23,7 @@ ENV GUNICORN_CAPTURE_OUTPUT=""
 # NEMO extra python packages
 ENV NEMO_EXTRA_PIP_PACKAGES=""
 
-COPY gunicorn_configuration.py /etc/
+COPY backend/gunicorn_configuration.py /etc/
 
 EXPOSE 8000/tcp
 
