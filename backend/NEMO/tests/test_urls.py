@@ -2,6 +2,7 @@ import ast
 import datetime
 import importlib
 import inspect
+from pathlib import Path
 from _ast import FunctionDef, Module
 from logging import getLogger
 from typing import List
@@ -202,7 +203,7 @@ urls_to_skip = [
 
 class URLsTestCase(NEMOTestCaseMixin, TransactionTestCase):
     reset_sequences = True
-    fixtures = ["resources/fixtures/splash_pad.json"]
+    fixtures = [str(Path(__file__).resolve().parents[3] / "resources" / "fixtures" / "splash_pad.json")]
 
     @classmethod
     def setUpTestData(cls):

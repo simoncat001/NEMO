@@ -55,6 +55,9 @@ nemo = "NEMO.provisioning:entry_point"
 include = ["NEMO*"]
 exclude = ["resources", "resources.*", "build", "build.*"]
 
+[tool.setuptools.package-dir]
+"" = "backend"
+
 [tool.setuptools.package-data]
 "NEMO" = ["**/templates/**/*", "**/static/**/*"]
 
