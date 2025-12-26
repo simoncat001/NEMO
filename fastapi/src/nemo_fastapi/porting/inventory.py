@@ -11,6 +11,7 @@ DJANGO_APP_PATH = REPO_ROOT / "backend" / "NEMO"
 URLS_PATH = DJANGO_APP_PATH / "urls.py"
 MODELS_PATH = DJANGO_APP_PATH / "models.py"
 API_VIEWS_PATH = DJANGO_APP_PATH / "views" / "api.py"
+MIGRATIONS_PATH = DJANGO_APP_PATH / "migrations"
 
 
 def _class_base_name(node: ast.expr) -> str | None:
@@ -70,3 +71,61 @@ def build_inventory() -> dict[str, list[str]]:
         "viewsets": load_viewset_names(),
         "routes": load_router_registry(),
     }
+
+
+def _extract_constant(node: ast.AST) -> str | None:
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    if isinstance(node, ast.Str):
+        return node.s
+    return None
+
+
+def _extract_field_type(node: ast.AST) -> str | None:
+    if isinstance(node, ast.Call):
+        func = node.func
+        if isinstance(func, ast.Attribute):
+            return func.attr
+        if isinstance(func, ast.Name):
+            return func.id
+    return None
+
+
+def _collect_migration_models(file_path: Path) -> dict[str, list[tuple[str, str]]]:
+    parsed = ast.parse(file_path.read_text(encoding="utf-8"))
+    models: dict[str, list[tuple[str, str]]] = {}
+    for node in ast.walk(parsed):
+        if not isinstance(node, ast.Call):
+            continue
+        if not isinstance(node.func, ast.Attribute) or node.func.attr != "CreateModel":
+            continue
+        model_name = None
+        fields: list[tuple[str, str]] = []
+        for keyword in node.keywords:
+            if keyword.arg == "name":
+                model_name = _extract_constant(keyword.value)
+            if keyword.arg == "fields" and isinstance(keyword.value, ast.List):
+                for field_node in keyword.value.elts:
+                    if not isinstance(field_node, ast.Tuple) or len(field_node.elts) < 2:
+                        continue
+                    field_name = _extract_constant(field_node.elts[0])
+                    field_type = _extract_field_type(field_node.elts[1])
+                    if field_name and field_type:
+                        fields.append((field_name, field_type))
+        if model_name:
+            models.setdefault(model_name, []).extend(fields)
+    return models
+
+
+def load_migration_models() -> dict[str, list[tuple[str, str]]]:
+    """Return model fields discovered in Django migration files."""
+
+    if not MIGRATIONS_PATH.exists():
+        return {}
+    models: dict[str, list[tuple[str, str]]] = {}
+    for migration_file in MIGRATIONS_PATH.glob("*.py"):
+        if migration_file.name == "__init__.py":
+            continue
+        for model_name, fields in _collect_migration_models(migration_file).items():
+            models.setdefault(model_name, []).extend(fields)
+    return models
