@@ -14,3 +14,5 @@ nemo.log
 conf/
 *.log
 .vs/
+ui/node_modules/
+ui/dist/
