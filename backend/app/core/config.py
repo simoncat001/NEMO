@@ -1,0 +1,51 @@
+"""
+Core configuration settings
+"""
+
+from typing import List, Optional
+from pydantic_settings import BaseSettings
+from pydantic import AnyHttpUrl, PostgresDsn, field_validator
+
+
+class Settings(BaseSettings):
+    # 项目信息
+    PROJECT_NAME: str = "NEMO FastAPI Backend"
+    VERSION: str = "1.0.0"
+    API_V1_STR: str = "/api/v1"
+    
+    # CORS
+    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
+    
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v):
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",")]
+        elif isinstance(v, (list, str)):
+            return v
+        raise ValueError(v)
+    
+    # PostgreSQL 数据库配置
+    POSTGRES_SERVER: str = "localhost"
+    POSTGRES_USER: str = "nemo_user"
+    POSTGRES_PASSWORD: str = "123456"
+    POSTGRES_DB: str = "nemo_db"
+    POSTGRES_PORT: int = 5432
+    
+    DATABASE_URL: str = "postgresql+asyncpg://nemo_user:123456@localhost:5432/nemo_db"
+    
+    # JWT 配置
+    SECRET_KEY: str = "your-secret-key-here-please-change-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
+    
+    # 超级管理员
+    FIRST_SUPERUSER: str = "admin@nemo.local"
+    FIRST_SUPERUSER_PASSWORD: str = "admin"
+    
+    class Config:
+        case_sensitive = True
+        env_file = ".env"
+
+
+settings = Settings()

@@ -1,0 +1,76 @@
+"""User model - SQLAlchemy ORM.
+
+This project uses SQLAlchemy 2.0; relationship attributes must be annotated with
+Mapped[...] (or the model must opt out via __allow_unmapped__).
+"""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import datetime as dt
+
+from sqlalchemy import Boolean, DateTime, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import func
+
+from app.db.session import Base
+
+if TYPE_CHECKING:
+    from app.models.staff_charge import StaffCharge
+    from app.models.configuration import Configuration, ConfigurationHistory
+
+
+class User(Base):
+    """用户模型"""
+    __tablename__ = "user"
+    __allow_unmapped__ = True
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    username: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
+    email: Mapped[str] = mapped_column(String(200), unique=True, index=True, nullable=False)
+    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    # hashed_password removed from mapping as it is in local_auth table
+    # hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    hashed_password: str | None = None
+    
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_staff: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
+    
+    badge_number: Mapped[int | None] = mapped_column(Integer, unique=True, nullable=True)
+    access_expiration: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    
+    # phone removed from mapping as it is not in DB
+    # phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    phone: str | None = None
+    
+    date_joined: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    last_login: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    
+    # 关系 - StaffCharge
+    staff_charges_given: Mapped[list["StaffCharge"]] = relationship(
+        "StaffCharge",
+        foreign_keys="StaffCharge.staff_member_id",
+        back_populates="staff_member"
+    )
+    staff_charges_received: Mapped[list["StaffCharge"]] = relationship(
+        "StaffCharge",
+        foreign_keys="StaffCharge.customer_id",
+        back_populates="customer"
+    )
+    
+    # 关系 - Configuration
+    maintained_configurations: Mapped[list["Configuration"]] = relationship(
+        "Configuration",
+        secondary="configuration_maintainers",
+        back_populates="maintainers"
+    )
+    configuration_history: Mapped[list["ConfigurationHistory"]] = relationship(
+        "ConfigurationHistory",
+        back_populates="user"
+    )
+    
+    def __repr__(self):
+        return f"<User(id={self.id}, username='{self.username}')>"

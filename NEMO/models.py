@@ -1269,14 +1269,14 @@ class Tool(SerializationByNameModel):
     )
     _backup_owners = models.ManyToManyField(
         User,
-        db_table="NEMO_tool_backup_owners",
+        db_table="tool_backup_owners",
         blank=True,
         related_name="backup_for_tools",
         help_text="Alternate staff members who are responsible for administration of this tool when the primary owner is unavailable.",
     )
     _superusers = models.ManyToManyField(
         User,
-        db_table="NEMO_tool_superusers",
+        db_table="tool_superusers",
         blank=True,
         related_name="superuser_for_tools",
         help_text="Superusers who can train users on this tool.",
@@ -1284,14 +1284,14 @@ class Tool(SerializationByNameModel):
     _staff = models.ManyToManyField(
         User,
         verbose_name="Act as staff",
-        db_table="NEMO_tool_staff",
+        db_table="tool_staff",
         blank=True,
         related_name="staff_for_tools",
         help_text="Users who can act as staff for this tool.",
     )
     _adjustment_request_reviewers = models.ManyToManyField(
         User,
-        db_table="NEMO_tool_adjustment_request_reviewers",
+        db_table="tool_adjustment_request_reviewers",
         blank=True,
         related_name="adjustment_request_reviewer_on_tools",
         help_text="Users who can approve/deny adjustment requests for this tool. Defaults to facility managers if left blank.",
@@ -2311,7 +2311,7 @@ class Qualification(BaseModel):
 
     class Meta:
         # For db consistency and compatibility with previous queries
-        db_table = "NEMO_user_qualifications"
+        db_table = "user_qualifications"
 
 
 class Configuration(BaseModel, ConfigurationMixin):

@@ -249,14 +249,26 @@ TIME_ZONE = "America/New_York"
 # -------------------- Database --------------------
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR + "/nemo.db",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "nemo_db",
+        "USER": "postgres",
+        "PASSWORD": "123456",
+        "HOST": "localhost",
+        "PORT": "5432",
     }
 }
 
+# SQLite配置（已禁用）
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR + "/nemo.db",
+#     }
+# }
+
 # Comment this line out for dev. This makes sure static files have a version to avoid
 # having to clear browser cache between releases.
-STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+# STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"  # 开发环境暂时禁用
 STATIC_ROOT = BASE_DIR + "/static/"
 STATIC_URL = "/static/"
 MEDIA_ROOT = BASE_DIR + "/media/"
