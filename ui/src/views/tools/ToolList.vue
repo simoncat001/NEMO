@@ -282,7 +282,7 @@ const loadTools = async () => {
       // ...(filterVisible.value !== undefined && { visible: filterVisible.value })
     }
     const response = await getTools(params)
-    let data = response.data || []
+    let data = Array.isArray(response) ? response : (response as any).data || []
     
     // 前端过滤
     if (filterName.value) {

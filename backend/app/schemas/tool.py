@@ -18,7 +18,7 @@ class ToolBase(BaseModel):
 
 class ToolCreate(ToolBase):
     """创建工具"""
-    primary_owner_id: int
+    primary_owner_id: Optional[int] = None
 
 
 class ToolUpdate(BaseModel):
@@ -43,3 +43,17 @@ class ToolInDB(ToolBase):
 class Tool(ToolInDB):
     """返回给客户端的工具"""
     pass
+
+
+class ToolEnable(BaseModel):
+    """启用工具请求"""
+    user_id: int = Field(..., description="使用用户ID")
+    project_id: int = Field(..., description="项目ID")
+    operator_id: Optional[int] = Field(None, description="操作员ID（如果不传则为当前用户）")
+    note: Optional[str] = None
+
+
+class ToolDisable(BaseModel):
+    """禁用工具请求"""
+    note: Optional[str] = None
+    run_data: Optional[str] = None

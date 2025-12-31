@@ -127,6 +127,12 @@
             <el-tag v-else type="success" effect="dark">使用中</el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="费用" width="100">
+          <template #default="{ row }">
+            <span v-if="row.amount !== undefined">¥{{ Number(row.amount).toFixed(2) }}</span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column label="验证状态" width="100">
           <template #default="{ row }">
             <el-tag v-if="row.validated" type="success">已验证</el-tag>
@@ -320,7 +326,7 @@ const formRules: FormRules = {
 const loadStats = async () => {
   try {
     const response = await getUsageEventStats()
-    stats.value = response.data || stats.value
+    stats.value = response || stats.value
   } catch (error) {
     console.error('加载统计数据失败:', error)
   }
@@ -336,7 +342,7 @@ const loadUsageEvents = async () => {
       ...(filterValidated.value !== undefined && { validated: filterValidated.value })
     }
     const response = await getUsageEvents(params)
-    tableData.value = response.data || []
+    tableData.value = Array.isArray(response) ? response : (response as any).data || []
     total.value = tableData.value.length
     await loadStats()
   } catch (error) {

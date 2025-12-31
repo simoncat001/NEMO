@@ -3,7 +3,7 @@ Configuration Models
 工具配置管理模型
 """
 from typing import List, Optional, TYPE_CHECKING
-from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, Text, Boolean, ForeignKey, Table, DateTime
 from sqlalchemy.orm import relationship
 
 from app.db.session import Base
@@ -280,7 +280,7 @@ class ConfigurationHistory(Base):
         comment="操作用户ID"
     )
     modification_time = Column(
-        String(50), 
+        DateTime(timezone=True), 
         nullable=False,
         comment="修改时间"
     )

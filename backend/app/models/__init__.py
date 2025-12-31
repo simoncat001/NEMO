@@ -12,6 +12,8 @@ from app.models.usage_event import UsageEvent
 from app.models.task import Task, TaskCategory, TaskHistory, TaskUrgency, TaskCategoryStage
 from app.models.staff_charge import StaffCharge
 from app.models.configuration import Configuration, ConfigurationOption, ConfigurationHistory
+from app.models.consumable import Consumable
+from app.models.consumable_withdraw import ConsumableWithdraw
 
 __all__ = [
     "User",
@@ -30,4 +32,6 @@ __all__ = [
     "Configuration",
     "ConfigurationOption",
     "ConfigurationHistory",
+    "Consumable",
+    "ConsumableWithdraw",
 ]

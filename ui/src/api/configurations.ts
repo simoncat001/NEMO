@@ -52,7 +52,7 @@ export const changeConfigurationSetting = (
     configurationId: number,
     data: {
         slot: number
-        choice: string
+        choice: number
     }
 ) => {
     return request.post<ApiResponse<Configuration>>(

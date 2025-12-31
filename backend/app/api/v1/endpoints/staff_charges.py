@@ -63,6 +63,28 @@ async def create_staff_charge(
     return await StaffChargeService.create_staff_charge(db, charge)
 
 
+@router.get("/stats", response_model=StaffChargeStats)
+async def get_staff_charge_stats(
+    start_date: Optional[datetime] = Query(None),
+    end_date: Optional[datetime] = Query(None),
+    staff_member_id: Optional[int] = Query(None),
+    customer_id: Optional[int] = Query(None),
+    project_id: Optional[int] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """获取员工收费统计（需要管理员权限）"""
+    if not current_user.is_staff:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only staff can view staff charge statistics"
+        )
+    
+    return await StaffChargeService.get_staff_charge_stats(
+        db, start_date, end_date, staff_member_id, customer_id, project_id
+    )
+
+
 @router.get("/{charge_id}", response_model=StaffChargeDetail)
 async def get_staff_charge(
     charge_id: int,
@@ -161,7 +183,7 @@ async def delete_staff_charge(
         )
 
 
-@router.get("/staff-charges/staff/{staff_member_id}/active", response_model=List[StaffChargeResponse])
+@router.get("/staff/{staff_member_id}/active", response_model=List[StaffChargeResponse])
 async def get_active_charges_for_staff(
     staff_member_id: int,
     db: AsyncSession = Depends(get_db),
@@ -178,7 +200,7 @@ async def get_active_charges_for_staff(
     return await StaffChargeService.get_active_charges_for_staff(db, staff_member_id)
 
 
-@router.get("/staff-charges/customer/{customer_id}/active", response_model=List[StaffChargeResponse])
+@router.get("/customer/{customer_id}/active", response_model=List[StaffChargeResponse])
 async def get_active_charges_for_customer(
     customer_id: int,
     db: AsyncSession = Depends(get_db),
@@ -195,7 +217,7 @@ async def get_active_charges_for_customer(
     return await StaffChargeService.get_active_charges_for_customer(db, customer_id)
 
 
-@router.post("/staff-charges/{charge_id}/validate", response_model=StaffChargeResponse)
+@router.post("/{charge_id}/validate", response_model=StaffChargeResponse)
 async def validate_staff_charge(
     charge_id: int,
     db: AsyncSession = Depends(get_db),
@@ -217,7 +239,7 @@ async def validate_staff_charge(
     return charge
 
 
-@router.post("/staff-charges/{charge_id}/waive", response_model=StaffChargeResponse)
+@router.post("/{charge_id}/waive", response_model=StaffChargeResponse)
 async def waive_staff_charge(
     charge_id: int,
     db: AsyncSession = Depends(get_db),
@@ -239,23 +261,4 @@ async def waive_staff_charge(
     return charge
 
 
-@router.get("/staff-charges/stats", response_model=StaffChargeStats)
-async def get_staff_charge_stats(
-    start_date: Optional[datetime] = Query(None),
-    end_date: Optional[datetime] = Query(None),
-    staff_member_id: Optional[int] = Query(None),
-    customer_id: Optional[int] = Query(None),
-    project_id: Optional[int] = Query(None),
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """获取员工收费统计（需要管理员权限）"""
-    if not current_user.is_staff:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only staff can view staff charge statistics"
-        )
-    
-    return await StaffChargeService.get_staff_charge_stats(
-        db, start_date, end_date, staff_member_id, customer_id, project_id
-    )
+

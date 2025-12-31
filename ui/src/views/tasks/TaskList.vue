@@ -344,7 +344,7 @@ const loadTasks = async () => {
       ...(filterResolved.value !== undefined && { resolved: filterResolved.value })
     }
     const response = await getTasks(params)
-    tableData.value = response.data || []
+    tableData.value = Array.isArray(response) ? response : (response as any).data || []
     total.value = tableData.value.length
   } catch (error) {
     ElMessage.error('加载任务列表失败')
@@ -359,7 +359,7 @@ const loadUrgentTasks = async () => {
   loading.value = true
   try {
     const response = await getUrgentTasks()
-    tableData.value = response.data || []
+    tableData.value = Array.isArray(response) ? response : (response as any).data || []
     total.value = tableData.value.length
     ElMessage.success(`找到 ${total.value} 个紧急任务`)
   } catch (error) {
@@ -446,7 +446,7 @@ const submitCancel = async () => {
 const handleViewHistory = async (row: Task) => {
   try {
     const response = await getTaskHistory(row.id)
-    historyData.value = response.data || []
+    historyData.value = Array.isArray(response) ? response : (response as any).data || []
     historyDialogVisible.value = true
   } catch (error) {
     ElMessage.error('加载历史记录失败')

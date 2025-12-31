@@ -62,7 +62,7 @@ async def list_configurations(
     return configurations
 
 
-@router.post("/configurations", response_model=ConfigurationResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ConfigurationResponse, status_code=status.HTTP_201_CREATED)
 async def create_configuration(
     configuration: ConfigurationCreate,
     db: Session = Depends(get_db),
@@ -76,7 +76,47 @@ async def create_configuration(
     return await ConfigurationService.create_configuration(db=db, configuration=configuration)
 
 
-@router.get("/configurations/{configuration_id}", response_model=ConfigurationDetail)
+@router.get("/tool/{tool_id}/list", response_model=List[ConfigurationResponse])
+async def get_tool_configurations(
+    tool_id: int,
+    enabled_only: bool = Query(True, description="仅返回启用的配置"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    获取工具的所有配置
+    
+    按显示顺序排列
+    """
+    configurations = await ConfigurationService.get_configurations_by_tool(
+        db=db,
+        tool_id=tool_id,
+        enabled_only=enabled_only
+    )
+    return configurations
+
+
+@router.get("/stats", response_model=ConfigurationStats)
+async def get_configuration_stats(
+    tool_id: Optional[int] = Query(None, description="工具ID筛选"),
+    days: int = Query(30, ge=1, le=365, description="统计天数"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_staff_user),
+):
+    """
+    获取配置统计信息
+    
+    需要管理员权限
+    """
+    stats = await ConfigurationService.get_configuration_stats(
+        db=db,
+        tool_id=tool_id,
+        days=days
+    )
+    return ConfigurationStats(**stats)
+
+
+@router.get("/{configuration_id}", response_model=ConfigurationDetail)
 async def get_configuration(
     configuration_id: int,
     db: Session = Depends(get_db),
@@ -103,7 +143,7 @@ async def get_configuration(
     return detail
 
 
-@router.put("/configurations/{configuration_id}", response_model=ConfigurationResponse)
+@router.put("/{configuration_id}", response_model=ConfigurationResponse)
 async def update_configuration(
     configuration_id: int,
     configuration: ConfigurationUpdate,
@@ -128,7 +168,7 @@ async def update_configuration(
     return updated
 
 
-@router.delete("/configurations/{configuration_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{configuration_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_configuration(
     configuration_id: int,
     db: Session = Depends(get_db),
@@ -147,7 +187,7 @@ async def delete_configuration(
         )
 
 
-@router.post("/configurations/{configuration_id}/change-setting", response_model=ConfigurationResponse)
+@router.post("/{configuration_id}/change-setting", response_model=ConfigurationResponse)
 async def change_configuration_setting(
     configuration_id: int,
     change: ConfigurationChangeSetting,
@@ -194,44 +234,7 @@ async def change_configuration_setting(
     return updated
 
 
-@router.get("/configurations/tool/{tool_id}/list", response_model=List[ConfigurationResponse])
-async def get_tool_configurations(
-    tool_id: int,
-    enabled_only: bool = Query(True, description="仅返回启用的配置"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """
-    获取工具的所有配置
-    
-    按显示顺序排列
-    """
-    configurations = await ConfigurationService.get_configurations_by_tool(
-        db=db,
-        tool_id=tool_id,
-        enabled_only=enabled_only
-    )
-    return configurations
 
-
-@router.get("/configurations/stats", response_model=ConfigurationStats)
-async def get_configuration_stats(
-    tool_id: Optional[int] = Query(None, description="工具ID筛选"),
-    days: int = Query(30, ge=1, le=365, description="统计天数"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_staff_user),
-):
-    """
-    获取配置统计信息
-    
-    需要管理员权限
-    """
-    stats = await ConfigurationService.get_configuration_stats(
-        db=db,
-        tool_id=tool_id,
-        days=days
-    )
-    return ConfigurationStats(**stats)
 
 
 # ==================== ConfigurationOption Endpoints ====================

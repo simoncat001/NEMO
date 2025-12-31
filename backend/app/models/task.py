@@ -27,7 +27,7 @@ class TaskCategoryStage(IntEnum):
 
 class TaskCategory(Base):
     """任务分类"""
-    __tablename__ = "taskcategory"
+    __tablename__ = "task_category"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(100), index=True)
@@ -73,11 +73,11 @@ class Task(Base):
         nullable=True
     )
     problem_category_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("taskcategory.id", ondelete="SET NULL"),
+        ForeignKey("task_category.id", ondelete="SET NULL"),
         nullable=True
     )
     resolution_category_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("taskcategory.id", ondelete="SET NULL"),
+        ForeignKey("task_category.id", ondelete="SET NULL"),
         nullable=True
     )
     
@@ -149,7 +149,7 @@ class Task(Base):
 
 class TaskHistory(Base):
     """任务历史记录"""
-    __tablename__ = "taskhistory"
+    __tablename__ = "task_history"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     

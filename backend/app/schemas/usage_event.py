@@ -48,6 +48,7 @@ class UsageEventResponse(UsageEventBase):
     waived_by_id: Optional[int] = None
     pre_run_data: Optional[str] = None
     run_data: Optional[str] = None
+    amount: float = Field(0.0, description="费用金额")
     
     model_config = ConfigDict(from_attributes=True)
 

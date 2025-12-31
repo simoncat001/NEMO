@@ -41,6 +41,18 @@ export interface Tool {
     created_at?: string
 }
 
+export interface ToolEnableRequest {
+    user_id: number
+    project_id: number
+    operator_id?: number
+    note?: string
+}
+
+export interface ToolDisableRequest {
+    note?: string
+    run_data?: string
+}
+
 // ==================== Project Types ====================
 export interface Project {
     id: number
@@ -109,10 +121,32 @@ export interface UsageEvent {
     waived_by_id?: number
     waived_on?: string
     note?: string
+    amount?: number
     // 关联对象
     user?: User
     tool?: Tool
     project?: Project
+}
+
+// ==================== Consumable Types ====================
+export interface Consumable {
+    id: number
+    name: string
+    quantity: number
+    reminder_threshold?: number
+    category?: string
+}
+
+export interface ConsumableWithdraw {
+    id: number
+    consumable_id: number
+    user_id: number
+    quantity: number
+    date: string
+    project_id?: number
+    merchant_id?: number
+    consumable?: Consumable
+    user?: User
 }
 
 // ==================== Task Types ====================

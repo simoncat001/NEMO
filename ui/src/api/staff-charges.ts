@@ -15,14 +15,14 @@ export const getStaffCharges = (params?: {
     skip?: number
     limit?: number
 }) => {
-    return request.get<ApiResponse<StaffCharge[]>>('/staff-charges', { params })
+    return request.get<ApiResponse<StaffCharge[]>>('/staff-charges/', { params })
 }
 
 /**
  * 创建员工收费记录
  */
 export const createStaffCharge = (data: Partial<StaffCharge>) => {
-    return request.post<ApiResponse<StaffCharge>>('/staff-charges', data)
+    return request.post<ApiResponse<StaffCharge>>('/staff-charges/', data)
 }
 
 /**

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Text, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class UsageEvent(Base):
     """工具使用记录模型"""
-    __tablename__ = "usageevent"
+    __tablename__ = "usage_event"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     
@@ -47,6 +47,9 @@ class UsageEvent(Base):
     # 时间字段
     start: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
     end: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, index=True)
+    
+    # 费用
+    amount: Mapped[float] = mapped_column(Numeric(10, 2), default=0.00, comment="费用金额")
     
     # 状态字段
     has_ended: Mapped[int] = mapped_column(BigInteger, default=0, index=True)

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class StaffCharge(Base):
     """员工收费记录模型 - 记录员工为客户提供服务的收费信息"""
-    __tablename__ = "staffcharge"
+    __tablename__ = "staff_charge"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     

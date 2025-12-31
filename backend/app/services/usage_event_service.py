@@ -99,7 +99,9 @@ class UsageEventService:
     ) -> Optional[UsageEvent]:
         """结束使用记录"""
         result = await db.execute(
-            select(UsageEvent).where(UsageEvent.id == event_id)
+            select(UsageEvent)
+            .options(selectinload(UsageEvent.tool))
+            .where(UsageEvent.id == event_id)
         )
         event = result.scalar_one_or_none()
         
@@ -112,6 +114,15 @@ class UsageEventService:
         event.end = datetime.utcnow()
         if end_data.run_data:
             event.run_data = end_data.run_data
+        
+        # 计算费用
+        if event.tool:
+            if event.tool.price_type == 0:  # 按次收费
+                event.amount = float(event.tool.price_per_use)
+            elif event.tool.price_type == 1:  # 按时收费
+                duration_hours = (event.end - event.start).total_seconds() / 3600
+                # 向上取整到0.5小时或1小时？这里暂时按实际时间计算
+                event.amount = float(event.tool.price_per_hour) * duration_hours
         
         # 设置 has_ended 值
         last_custom = await db.execute(

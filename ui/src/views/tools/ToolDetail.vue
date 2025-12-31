@@ -286,6 +286,28 @@
             </el-form-item>
           </el-col>
         </el-row>
+        
+        <el-divider content-position="left">收费设置</el-divider>
+        <el-row :gutter="16">
+          <el-col :span="8">
+            <el-form-item label="收费类型">
+              <el-select v-model="formData.price_type" placeholder="请选择">
+                <el-option label="按次收费" :value="0" />
+                <el-option label="按时收费" :value="1" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="8" v-if="formData.price_type === 0">
+            <el-form-item label="每次价格">
+              <el-input-number v-model="formData.price_per_use" :min="0" :precision="2" :step="1" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="8" v-if="formData.price_type === 1">
+            <el-form-item label="每小时价格">
+              <el-input-number v-model="formData.price_per_hour" :min="0" :precision="2" :step="1" />
+            </el-form-item>
+          </el-col>
+        </el-row>
       </el-form>
       <template #footer>
         <el-button @click="editDialogVisible = false">取消</el-button>
@@ -352,7 +374,10 @@ const formData = reactive<Partial<Tool>>({
   description: '',
   operational: true,
   visible: true,
-  requires_reservation: false
+  requires_reservation: false,
+  price_type: 1,
+  price_per_use: 0,
+  price_per_hour: 0
 })
 
 const formRules: FormRules = {
@@ -437,7 +462,10 @@ const handleEdit = () => {
     description: toolDetail.value.description,
     operational: toolDetail.value.operational,
     visible: toolDetail.value.visible,
-    requires_reservation: toolDetail.value.requires_reservation
+    requires_reservation: toolDetail.value.requires_reservation,
+    price_type: toolDetail.value.price_type ?? 1,
+    price_per_use: Number(toolDetail.value.price_per_use || 0),
+    price_per_hour: Number(toolDetail.value.price_per_hour || 0)
   })
   editDialogVisible.value = true
 }

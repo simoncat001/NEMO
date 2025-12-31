@@ -35,6 +35,12 @@ const routes: RouteRecordRaw[] = [
                 meta: { title: '工具列表' },
             },
             {
+                path: 'tool-control',
+                name: 'ToolControl',
+                component: () => import('@/views/tools/ToolControl.vue'),
+                meta: { title: '仪器控制' },
+            },
+            {
                 path: 'tools/:id',
                 name: 'ToolDetail',
                 component: () => import('@/views/tools/ToolDetail.vue'),
@@ -86,6 +92,13 @@ const routes: RouteRecordRaw[] = [
                 name: 'StaffCharges',
                 component: () => import('@/views/staff-charges/StaffChargeList.vue'),
                 meta: { title: '员工收费', requiresStaff: true },
+            },
+            // 耗材管理
+            {
+                path: 'consumables',
+                name: 'Consumables',
+                component: () => import('@/views/consumables/ConsumableList.vue'),
+                meta: { title: '耗材管理' },
             },
             // 配置管理
             {

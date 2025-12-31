@@ -225,7 +225,7 @@ const formRules: FormRules = {
 const loadAccountTypes = async () => {
   try {
     const response = await getAccountTypes()
-    accountTypes.value = response.data || []
+    accountTypes.value = Array.isArray(response) ? response : (response as any).data || []
   } catch (error) {
     console.error('加载账户类型失败:', error)
   }
@@ -242,7 +242,7 @@ const loadAccounts = async () => {
       ...(filterActive.value !== undefined && { active: filterActive.value })
     }
     const response = await getAccounts(params)
-    tableData.value = response.data || []
+    tableData.value = Array.isArray(response) ? response : (response as any).data || []
     total.value = tableData.value.length
   } catch (error) {
     ElMessage.error('加载账户列表失败')

@@ -335,7 +335,7 @@ const calculateCost = (charge: StaffCharge) => {
 const loadStats = async () => {
   try {
     const response = await getStaffChargeStats()
-    stats.value = response.data || stats.value
+    stats.value = response || stats.value
   } catch (error) {
     console.error('加载统计数据失败:', error)
   }
@@ -351,7 +351,7 @@ const loadStaffCharges = async () => {
       ...(filterValidated.value !== undefined && { validated: filterValidated.value })
     }
     const response = await getStaffCharges(params)
-    tableData.value = response.data || []
+    tableData.value = Array.isArray(response) ? response : (response as any).data || []
     total.value = tableData.value.length
     await loadStats()
   } catch (error) {

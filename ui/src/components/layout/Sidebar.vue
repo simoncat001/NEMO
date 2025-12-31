@@ -38,6 +38,11 @@
         <template #title>工具管理</template>
       </el-menu-item>
 
+      <el-menu-item index="/tool-control">
+        <el-icon><Monitor /></el-icon>
+        <template #title>仪器控制</template>
+      </el-menu-item>
+
       <el-sub-menu index="reservations">
         <template #title>
           <el-icon><Calendar /></el-icon>
@@ -55,6 +60,11 @@
       <el-menu-item index="/tasks">
         <el-icon><List /></el-icon>
         <template #title>任务管理</template>
+      </el-menu-item>
+
+      <el-menu-item index="/consumables">
+        <el-icon><Box /></el-icon>
+        <template #title>耗材管理</template>
       </el-menu-item>
 
       <el-sub-menu index="admin" v-if="authStore.isStaff()">

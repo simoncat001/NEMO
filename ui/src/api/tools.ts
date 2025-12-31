@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { Tool, PaginationParams } from '@/types'
+import type { Tool, PaginationParams, ToolEnableRequest, ToolDisableRequest, UsageEvent } from '@/types'
 
 // 获取工具列表
 export function getTools(params?: PaginationParams): Promise<Tool[]> {
@@ -41,5 +41,31 @@ export function deleteTool(id: number): Promise<void> {
     return request({
         url: `/tools/${id}`,
         method: 'delete',
+    })
+}
+
+// 获取工具状态
+export function getToolStatus(id: number): Promise<boolean> {
+    return request({
+        url: `/tools/${id}/status`,
+        method: 'get',
+    })
+}
+
+// 启用工具
+export function enableTool(id: number, data: ToolEnableRequest): Promise<UsageEvent> {
+    return request({
+        url: `/tools/${id}/enable`,
+        method: 'post',
+        data,
+    })
+}
+
+// 禁用工具
+export function disableTool(id: number, data: ToolDisableRequest): Promise<UsageEvent> {
+    return request({
+        url: `/tools/${id}/disable`,
+        method: 'post',
+        data,
     })
 }

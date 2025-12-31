@@ -58,6 +58,27 @@ async def create_usage_event(
     return await UsageEventService.create_usage_event(db, event, current_user.id)
 
 
+@router.get("/stats", response_model=UsageEventStats)
+async def get_usage_stats(
+    start_date: Optional[datetime] = Query(None),
+    end_date: Optional[datetime] = Query(None),
+    tool_id: Optional[int] = Query(None),
+    user_id: Optional[int] = Query(None),
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """获取使用统计（需要管理员权限）"""
+    if not current_user.is_staff:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only staff can view usage statistics"
+        )
+    
+    return await UsageEventService.get_usage_stats(
+        db, start_date, end_date, tool_id, user_id
+    )
+
+
 @router.get("/{event_id}", response_model=UsageEventDetail)
 async def get_usage_event(
     event_id: int,
@@ -231,24 +252,3 @@ async def waive_usage_event(
             detail="Usage event not found"
         )
     return event
-
-
-@router.get("/stats", response_model=UsageEventStats)
-async def get_usage_stats(
-    start_date: Optional[datetime] = Query(None),
-    end_date: Optional[datetime] = Query(None),
-    tool_id: Optional[int] = Query(None),
-    user_id: Optional[int] = Query(None),
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """获取使用统计（需要管理员权限）"""
-    if not current_user.is_staff:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only staff can view usage statistics"
-        )
-    
-    return await UsageEventService.get_usage_stats(
-        db, start_date, end_date, tool_id, user_id
-    )

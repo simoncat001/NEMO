@@ -273,7 +273,7 @@ class ConfigurationService:
         ]
         
         # 最近变更统计
-        cutoff_date = (datetime.now() - timedelta(days=days)).isoformat()
+        cutoff_date = datetime.now() - timedelta(days=days)
         recent_changes_query = select(func.count()).select_from(ConfigurationHistory).where(
             ConfigurationHistory.modification_time >= cutoff_date
         )

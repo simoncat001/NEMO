@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 class AccountType(Base):
     """账户类型分类"""
-    __tablename__ = "accounttype"
+    __tablename__ = "account_type"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(200), unique=True, index=True)
@@ -35,7 +35,7 @@ class Account(Base):
     
     # 外键
     type_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("accounttype.id", ondelete="SET NULL"),
+        ForeignKey("account_type.id", ondelete="SET NULL"),
         nullable=True
     )
     

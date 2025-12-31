@@ -7,35 +7,35 @@ import type { Account, AccountType, ApiResponse } from '@/types'
  * 获取账户类型列表
  */
 export const getAccountTypes = () => {
-    return request.get<ApiResponse<AccountType[]>>('/account-types')
+    return request.get<ApiResponse<AccountType[]>>('/accounts/account-types')
 }
 
 /**
  * 创建账户类型
  */
 export const createAccountType = (data: Partial<AccountType>) => {
-    return request.post<ApiResponse<AccountType>>('/account-types', data)
+    return request.post<ApiResponse<AccountType>>('/accounts/account-types', data)
 }
 
 /**
  * 获取账户类型详情
  */
 export const getAccountType = (typeId: number) => {
-    return request.get<ApiResponse<AccountType>>(`/account-types/${typeId}`)
+    return request.get<ApiResponse<AccountType>>(`/accounts/account-types/${typeId}`)
 }
 
 /**
  * 更新账户类型
  */
 export const updateAccountType = (typeId: number, data: Partial<AccountType>) => {
-    return request.put<ApiResponse<AccountType>>(`/account-types/${typeId}`, data)
+    return request.put<ApiResponse<AccountType>>(`/accounts/account-types/${typeId}`, data)
 }
 
 /**
  * 删除账户类型
  */
 export const deleteAccountType = (typeId: number) => {
-    return request.delete(`/account-types/${typeId}`)
+    return request.delete(`/accounts/account-types/${typeId}`)
 }
 
 // ==================== 账户管理 ====================
@@ -49,14 +49,14 @@ export const getAccounts = (params?: {
     skip?: number
     limit?: number
 }) => {
-    return request.get<ApiResponse<Account[]>>('/accounts', { params })
+    return request.get<ApiResponse<Account[]>>('/accounts/', { params })
 }
 
 /**
  * 创建账户
  */
 export const createAccount = (data: Partial<Account>) => {
-    return request.post<ApiResponse<Account>>('/accounts', data)
+    return request.post<ApiResponse<Account>>('/accounts/', data)
 }
 
 /**

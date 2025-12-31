@@ -231,10 +231,14 @@
           />
         </el-form-item>
         <el-form-item label="配置值" required>
-          <el-input
-            v-model="settingForm.choice"
-            placeholder="请输入配置值"
-          />
+          <el-select v-model="settingForm.choice" placeholder="请选择配置值" style="width: 100%">
+            <el-option
+              v-for="item in availableOptions"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -333,6 +337,7 @@ const submitting = ref(false)
 
 // 修改配置项对话框
 const settingDialogVisible = ref(false)
+const availableOptions = ref<string[]>([])
 const settingForm = reactive({
   configurationId: 0,
   slot: 0,
@@ -361,7 +366,7 @@ const formRules: FormRules = {
 const loadStats = async () => {
   try {
     const response = await getConfigurationStats()
-    stats.value = response.data || stats.value
+    stats.value = response || stats.value
   } catch (error) {
     console.error('加载统计数据失败:', error)
   }
@@ -378,7 +383,7 @@ const loadConfigurations = async () => {
       ...(filterEnabled.value !== undefined && { enabled: filterEnabled.value })
     }
     const response = await getConfigurations(params)
-    tableData.value = response.data || []
+    tableData.value = Array.isArray(response) ? response : (response as any).data || []
     total.value = tableData.value.length
     await loadStats()
   } catch (error) {
@@ -412,12 +417,25 @@ const handleChangeSetting = (row: Configuration) => {
   settingForm.configurationId = row.id
   settingForm.slot = 0
   settingForm.choice = ''
+  
+  if (row.available_settings) {
+    availableOptions.value = row.available_settings.split(',').map(s => s.trim())
+  } else {
+    availableOptions.value = []
+  }
+  
   settingDialogVisible.value = true
 }
 
 const submitChangeSetting = async () => {
-  if (!settingForm.choice.trim()) {
-    ElMessage.warning('请输入配置值')
+  if (!settingForm.choice) {
+    ElMessage.warning('请选择配置值')
+    return
+  }
+
+  const choiceIndex = availableOptions.value.indexOf(settingForm.choice)
+  if (choiceIndex === -1) {
+    ElMessage.error('无效的配置值')
     return
   }
 
@@ -425,7 +443,7 @@ const submitChangeSetting = async () => {
   try {
     await changeConfigurationSetting(settingForm.configurationId, {
       slot: settingForm.slot,
-      choice: settingForm.choice
+      choice: choiceIndex
     })
     ElMessage.success('修改成功')
     settingDialogVisible.value = false
@@ -444,7 +462,7 @@ const showHistory = async () => {
   historyDialogVisible.value = true
   try {
     const response = await getConfigurationHistory()
-    historyData.value = response.data || []
+    historyData.value = Array.isArray(response) ? response : (response as any).data || []
   } catch (error) {
     ElMessage.error('加载历史记录失败')
     console.error(error)

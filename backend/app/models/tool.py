@@ -45,11 +45,28 @@ class Tool(Base):
     description = Column(Text, default="")
     serial = Column(String(100), nullable=True)
     
+    # 策略设置
+    policy_off_between_times = Column(Boolean, default=False, nullable=False)
+    policy_off_weekend = Column(Boolean, default=False, nullable=False)
+    image = Column(String(200), default="", nullable=False)
+    tool_calendar_color = Column(String(50), default="#3788d8", nullable=False)
+    qualifications_never_expire = Column(Boolean, default=False, nullable=False)
+    ask_to_leave_area_when_done_using = Column(Boolean, default=False, nullable=False)
+    _operation_mode = Column("_operation_mode", Integer, default=0, nullable=False)
+    abuse_weight = Column(Integer, default=1, nullable=False)
+    problem_shutdown_enabled = Column(Boolean, default=False, nullable=False)
+    
     # 互锁信息
     interlock_id = Column(Integer, nullable=True)
     
+    # 收费配置
+    # 0: 按次收费 (Per Use), 1: 按时收费 (Per Hour/Time)
+    price_type = Column(Integer, default=1, nullable=False, comment="收费类型: 0=按次, 1=按时")
+    price_per_use = Column(Numeric(10, 2), default=0.00, nullable=False, comment="每次使用价格")
+    price_per_hour = Column(Numeric(10, 2), default=0.00, nullable=False, comment="每小时价格")
+
     # 分类
-    _category_id = Column("category", Integer, ForeignKey("taskcategory.id"), nullable=True)
+    _category_id = Column("category", Integer, ForeignKey("task_category.id"), nullable=True)
     
     # 关系 - Configuration
     configurations: List["Configuration"] = relationship(
@@ -66,9 +83,9 @@ class Tool(Base):
 
 This backend maps task categories in `app.models.task.TaskCategory`.
 An older `ToolCategory` model previously mapped to the same underlying table
-(`taskcategory`), which causes SQLAlchemy to raise:
+(`task_category`), which causes SQLAlchemy to raise:
 
-    InvalidRequestError: Table 'taskcategory' is already defined
+    InvalidRequestError: Table 'task_category' is already defined
 
 To keep the preview environment working, we intentionally do not map `ToolCategory`
 as a separate ORM class.

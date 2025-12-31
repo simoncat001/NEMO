@@ -8,8 +8,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.schemas.user import User, UserCreate, UserUpdate
 from app.services.user_service import UserService
+from app.api.v1.endpoints.auth import get_current_user
 
 router = APIRouter()
+
+
+@router.get("/me", response_model=User)
+async def read_users_me(
+    current_user: User = Depends(get_current_user)
+):
+    """获取当前登录用户信息"""
+    return current_user
 
 
 @router.get("/", response_model=List[User])
