@@ -1,8 +1,8 @@
 <template>
   <div class="login-container">
     <el-card class="login-card">
-      <h1 class="title">NEMO</h1>
-      <p class="subtitle">Laboratory Management System</p>
+      <h1 class="title">szlab</h1>
+      <p class="subtitle">实验室预约系统</p>
 
       <el-form
         ref="formRef"
@@ -98,7 +98,7 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
 }
 
 .login-card {

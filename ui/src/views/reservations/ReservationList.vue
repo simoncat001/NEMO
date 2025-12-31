@@ -227,26 +227,39 @@
           </el-select>
         </el-form-item>
         <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="开始时间" prop="start">
+          <el-col :span="8">
+            <el-form-item label="预约日期" required>
               <el-date-picker
-                v-model="formData.start"
-                type="datetime"
-                placeholder="选择开始时间"
-                value-format="YYYY-MM-DD HH:mm:ss"
+                v-model="reservationDate"
+                type="date"
+                placeholder="选择日期"
+                value-format="YYYY-MM-DD"
                 style="width: 100%"
+                :clearable="false"
+                @change="updateTimeFromSlider"
               />
             </el-form-item>
           </el-col>
-          <el-col :span="12">
-            <el-form-item label="结束时间" prop="end">
-              <el-date-picker
-                v-model="formData.end"
-                type="datetime"
-                placeholder="选择结束时间"
-                value-format="YYYY-MM-DD HH:mm:ss"
-                style="width: 100%"
-              />
+          <el-col :span="16">
+            <el-form-item label="预约时间" required>
+              <div class="time-slider-container">
+                <el-slider
+                  v-model="timeRange"
+                  range
+                  :min="0"
+                  :max="1440"
+                  :step="15"
+                  :marks="marks"
+                  :format-tooltip="formatTooltip"
+                  @change="updateTimeFromSlider"
+                />
+                <div class="time-display">
+                  {{ formatTimeFromMinutes(timeRange[0]) }} - {{ formatTimeFromMinutes(timeRange[1]) }}
+                  <el-tag size="small" type="info" style="margin-left: 8px">
+                    时长: {{ formatDuration(timeRange[1] - timeRange[0]) }}
+                  </el-tag>
+                </div>
+              </div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -302,6 +315,52 @@ import { formatDateTime } from '@/utils/helpers'
 import dayjs from 'dayjs'
 
 const router = useRouter()
+
+// 预约时间相关
+const reservationDate = ref(dayjs().format('YYYY-MM-DD'))
+const timeRange = ref([540, 600]) // Default 9:00 - 10:00
+
+const marks = {
+  0: '00:00',
+  240: '04:00',
+  480: '08:00',
+  720: '12:00',
+  960: '16:00',
+  1200: '20:00',
+  1440: '24:00'
+}
+
+const formatTooltip = (val: number) => {
+  const hours = Math.floor(val / 60)
+  const minutes = val % 60
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+}
+
+const formatTimeFromMinutes = (val: number) => {
+    return formatTooltip(val)
+}
+
+const formatDuration = (minutes: number) => {
+    const h = Math.floor(minutes / 60)
+    const m = minutes % 60
+    if (h > 0) {
+        return `${h}小时${m > 0 ? ` ${m}分钟` : ''}`
+    }
+    return `${m}分钟`
+}
+
+const updateTimeFromSlider = () => {
+    if (!reservationDate.value) return
+    
+    const startMinutes = timeRange.value[0]
+    const endMinutes = timeRange.value[1]
+    
+    const start = dayjs(reservationDate.value).startOf('day').add(startMinutes, 'minute')
+    const end = dayjs(reservationDate.value).startOf('day').add(endMinutes, 'minute')
+    
+    formData.start = start.format('YYYY-MM-DD HH:mm:ss')
+    formData.end = end.format('YYYY-MM-DD HH:mm:ss')
+}
 
 // 数据列表
 const loading = ref(false)
@@ -441,6 +500,9 @@ const goToCalendar = () => {
 const handleCreate = () => {
   dialogMode.value = 'create'
   dialogVisible.value = true
+  reservationDate.value = dayjs().format('YYYY-MM-DD')
+  timeRange.value = [540, 600]
+  updateTimeFromSlider()
 }
 
 // 打开编辑对话框
@@ -456,6 +518,20 @@ const handleEdit = (row: Reservation) => {
     additional_information: row.additional_information,
     self_configuration: row.self_configuration
   })
+  
+  const start = dayjs(row.start)
+  const end = dayjs(row.end)
+  reservationDate.value = start.format('YYYY-MM-DD')
+  const startMinutes = start.hour() * 60 + start.minute()
+  let endMinutes = end.hour() * 60 + end.minute()
+  
+  // 处理跨天情况（如果是第二天0点，设为1440）
+  if (end.date() !== start.date()) {
+      endMinutes += 1440
+  }
+  
+  timeRange.value = [startMinutes, endMinutes]
+  
   dialogVisible.value = true
 }
 
@@ -555,5 +631,17 @@ onMounted(async () => {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
+}
+
+.time-slider-container {
+  width: 100%;
+  padding: 0 10px;
+}
+
+.time-display {
+  margin-top: 8px;
+  text-align: center;
+  color: #606266;
+  font-size: 14px;
 }
 </style>

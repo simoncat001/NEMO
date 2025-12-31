@@ -10,13 +10,10 @@
             </linearGradient>
           </defs>
           <rect x="6" y="6" width="52" height="52" rx="14" fill="url(#nemoGrad)" />
-          <path
-            d="M20 42V22h4l8 12 8-12h4v20h-4V29l-8 12-8-12v13h-4z"
-            fill="#ffffff"
-          />
+          <text x="32" y="41" font-size="28" font-weight="bold" fill="#ffffff" text-anchor="middle">预</text>
         </svg>
       </span>
-      <span v-if="!appStore.sidebarCollapsed">NEMO</span>
+      <span v-if="!appStore.sidebarCollapsed">预约系统</span>
     </div>
     
     <el-menu

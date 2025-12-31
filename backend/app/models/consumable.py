@@ -10,11 +10,15 @@ class Consumable(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(200), unique=True, nullable=False, index=True)
-    category = Column(String(100), nullable=True)
+    category_id = Column(Integer, nullable=True)
     visible = Column(Boolean, default=True, nullable=False)
-    
-    # 价格信息
-    price = Column(Numeric(10, 2), default=0.00, nullable=False, comment="单价")
+    quantity = Column(Integer, default=0)
+    reminder_threshold = Column(Integer, nullable=True)
+    reminder_email = Column(String, nullable=True)
+    reminder_threshold_reached = Column(Boolean, default=False)
+    reusable = Column(Boolean, default=False)
+    allow_self_checkout = Column(Boolean, default=False)
+    notes = Column(String, nullable=True)
     
     def __repr__(self):
-        return f"<Consumable(id={self.id}, name='{self.name}', price={self.price})>"
+        return f"<Consumable(id={self.id}, name='{self.name}')>"

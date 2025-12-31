@@ -6,6 +6,16 @@
                 <el-card class="tool-list-card">
                     <template #header>
                         <div class="card-header">
+                            <span>选择项目</span>
+                            <el-select v-model="selectedProjectId" placeholder="请先选择项目" style="width: 100%">
+                                <el-option
+                                    v-for="project in projects"
+                                    :key="project.id"
+                                    :label="project.name"
+                                    :value="project.id"
+                                />
+                            </el-select>
+                            <el-divider style="margin: 10px 0" />
                             <span>工具列表</span>
                             <el-input
                                 v-model="searchQuery"
@@ -13,10 +23,11 @@
                                 prefix-icon="Search"
                                 clearable
                                 class="search-input"
+                                :disabled="!selectedProjectId"
                             />
                         </div>
                     </template>
-                    <div class="tool-list">
+                    <div class="tool-list" v-if="selectedProjectId">
                         <div
                             v-for="tool in filteredTools"
                             :key="tool.id"
@@ -32,6 +43,7 @@
                             </div>
                         </div>
                     </div>
+                    <el-empty v-else description="请先选择项目" />
                 </el-card>
             </el-col>
 
@@ -59,15 +71,8 @@
                         <div v-if="!isToolInUse" class="enable-section">
                             <h3>开始使用</h3>
                             <el-form :model="enableForm" label-width="100px">
-                                <el-form-item label="项目">
-                                    <el-select v-model="enableForm.project_id" placeholder="请选择项目" style="width: 100%">
-                                        <el-option
-                                            v-for="project in projects"
-                                            :key="project.id"
-                                            :label="project.name"
-                                            :value="project.id"
-                                        />
-                                    </el-select>
+                                <el-form-item label="当前项目">
+                                    <el-tag>{{ getProjectName(selectedProjectId) }}</el-tag>
                                 </el-form-item>
                                 <el-form-item label="备注">
                                     <el-input v-model="enableForm.note" type="textarea" rows="3" />
@@ -114,17 +119,22 @@ const tools = ref<Tool[]>([])
 const projects = ref<Project[]>([])
 const currentUser = ref<User | null>(null)
 const selectedTool = ref<Tool | null>(null)
+const selectedProjectId = ref<number | undefined>(undefined)
 const searchQuery = ref('')
 const isToolInUse = ref(false)
 const loading = ref(false)
 
 const enableForm = ref({
-    project_id: undefined as number | undefined,
     note: ''
 })
 
 const disableForm = ref({
     note: ''
+})
+
+watch(selectedProjectId, () => {
+    selectedTool.value = null
+    isToolInUse.value = false
 })
 
 // 过滤工具列表
@@ -154,6 +164,12 @@ onMounted(async () => {
     }
 })
 
+const getProjectName = (id: number | undefined) => {
+    if (!id) return ''
+    const project = projects.value.find(p => p.id === id)
+    return project ? project.name : ''
+}
+
 // 选择工具
 const selectTool = async (tool: Tool) => {
     selectedTool.value = tool
@@ -173,7 +189,7 @@ const checkToolStatus = async () => {
 // 启用工具
 const handleEnableTool = async () => {
     if (!selectedTool.value || !currentUser.value) return
-    if (!enableForm.value.project_id) {
+    if (!selectedProjectId.value) {
         ElMessage.warning('请选择项目')
         return
     }
@@ -182,7 +198,7 @@ const handleEnableTool = async () => {
     try {
         await enableTool(selectedTool.value.id, {
             user_id: currentUser.value.id,
-            project_id: enableForm.value.project_id,
+            project_id: selectedProjectId.value,
             note: enableForm.value.note
         })
         ElMessage.success('仪器已启用')
