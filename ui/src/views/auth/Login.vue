@@ -41,6 +41,9 @@
         >
           登录
         </el-button>
+        <div class="register-link">
+          <router-link to="/register">没有账号？立即注册</router-link>
+        </div>
       </el-form>
     </el-card>
   </div>
@@ -113,7 +116,15 @@ const handleLogin = async () => {
   color: #409eff;
   margin-bottom: 8px;
 }
-
+.register-link {
+  text-align: center;
+  margin-top: 10px;
+}
+.register-link a {
+  color: #409eff;
+  text-decoration: none;
+  font-size: 14px;
+}
 .subtitle {
   text-align: center;
   color: #909399;

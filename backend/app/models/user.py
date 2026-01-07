@@ -31,9 +31,16 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(200), unique=True, index=True, nullable=False)
     first_name: Mapped[str] = mapped_column(String(100), nullable=False)
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    # hashed_password removed from mapping as it is in local_auth table
-    # hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    hashed_password: str | None = None
+    # Mapped to 'password' column in DB to satisfy NOT NULL constraint
+    password: Mapped[str] = mapped_column(String(128), nullable=False)
+    # Legacy alias for compatibility if needed
+    @property
+    def hashed_password(self):
+        return self.password
+
+    @hashed_password.setter
+    def hashed_password(self, value):
+        self.password = value
     
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_staff: Mapped[bool] = mapped_column(Boolean, default=False)

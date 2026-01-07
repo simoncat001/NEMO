@@ -117,6 +117,9 @@ async def get_accounts(
     current_user: User = Depends(get_current_user),
 ):
     """获取账户列表"""
+    if not current_user.is_staff and not current_user.is_superuser:
+        return []
+        
     return await AccountService.get_accounts(db, skip, limit, active_only)
 
 
@@ -160,7 +163,7 @@ async def get_account(
     return account
 
 
-@router.put("/accounts/{account_id}", response_model=AccountResponse)
+@router.put("/{account_id}", response_model=AccountResponse)
 async def update_account(
     account_id: int,
     account: AccountUpdate,
@@ -183,7 +186,7 @@ async def update_account(
     return updated
 
 
-@router.delete("/accounts/{account_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{account_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_account(
     account_id: int,
     db: AsyncSession = Depends(get_db),

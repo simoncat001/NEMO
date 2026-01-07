@@ -26,3 +26,12 @@ export function getCurrentUser(): Promise<User> {
         method: 'get',
     })
 }
+
+// 注册
+export function register(data: any): Promise<User> {
+    return request({
+        url: '/auth/register',
+        method: 'post',
+        data
+    })
+}

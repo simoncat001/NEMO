@@ -7,8 +7,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.schemas.tool import Tool, ToolCreate, ToolUpdate, ToolEnable, ToolDisable
+from app.schemas.tool_rate import ToolRateCreate, ToolRateResponse
+from app.models.tool_rate import ToolRate
 from app.schemas.usage_event import UsageEventResponse
 from app.services.tool_service import ToolService
+from sqlalchemy import select, and_
 from app.api.v1.endpoints.auth import get_current_user
 from app.models.user import User
 
@@ -48,6 +51,57 @@ async def get_tool(
             detail="Tool not found"
         )
     return tool
+
+
+@router.post("/{tool_id}/rates", response_model=ToolRateResponse)
+async def create_tool_rate(
+    tool_id: int,
+    rate_in: ToolRateCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """创建工具费率（管理员）"""
+    if not current_user.is_staff:
+         raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if rate_in.tool_id != tool_id:
+        raise HTTPException(status_code=400, detail="Tool ID mismatch")
+
+    rate = ToolRate(**rate_in.model_dump())
+    db.add(rate)
+    await db.commit()
+    await db.refresh(rate)
+    return rate
+
+@router.get("/{tool_id}/rates", response_model=List[ToolRateResponse])
+async def get_tool_rates(
+    tool_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """获取工具费率"""
+    # Anyone can see rates? Usually yes.
+    result = await db.execute(select(ToolRate).where(ToolRate.tool_id == tool_id))
+    return result.scalars().all()
+
+@router.delete("/{tool_id}/rates/{rate_id}", status_code=204)
+async def delete_tool_rate(
+    tool_id: int,
+    rate_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """删除工具费率（管理员）"""
+    if not current_user.is_staff:
+         raise HTTPException(status_code=403, detail="Not authorized")
+         
+    result = await db.execute(select(ToolRate).where(and_(ToolRate.id == rate_id, ToolRate.tool_id == tool_id)))
+    rate = result.scalar_one_or_none()
+    if not rate:
+        raise HTTPException(status_code=404, detail="Rate not found")
+        
+    await db.delete(rate)
+    await db.commit()
 
 
 @router.post("/", response_model=Tool, status_code=status.HTTP_201_CREATED)

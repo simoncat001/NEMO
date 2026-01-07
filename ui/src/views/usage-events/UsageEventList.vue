@@ -5,9 +5,6 @@
       <el-row :gutter="16" align="middle">
         <el-col :span="12">
           <el-space>
-            <el-button type="primary" :icon="Plus" @click="handleCreate">
-              创建使用记录
-            </el-button>
             <el-button :icon="Refresh" @click="loadUsageEvents">
               刷新
             </el-button>
@@ -42,7 +39,7 @@
               <el-icon :size="32"><Document /></el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ stats.total_events }}</div>
+              <div class="stat-value">{{ stats.total_count }}</div>
               <div class="stat-label">总记录数</div>
             </div>
           </div>
@@ -55,7 +52,7 @@
               <el-icon :size="32"><Check /></el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ stats.validated_events }}</div>
+              <div class="stat-value">{{ stats.validated_count }}</div>
               <div class="stat-label">已验证</div>
             </div>
           </div>
@@ -68,7 +65,7 @@
               <el-icon :size="32"><Clock /></el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ stats.pending_events }}</div>
+              <div class="stat-value">{{ stats.pending_count }}</div>
               <div class="stat-label">待验证</div>
             </div>
           </div>
@@ -81,7 +78,7 @@
               <el-icon :size="32"><Timer /></el-icon>
             </div>
             <div class="stat-content">
-              <div class="stat-value">{{ formatDuration(stats.total_duration) }}</div>
+              <div class="stat-value">{{ formatDuration(stats.total_duration_minutes) }}</div>
               <div class="stat-label">总使用时长</div>
             </div>
           </div>
@@ -269,7 +266,6 @@ import {
 } from '@element-plus/icons-vue'
 import {
   getUsageEvents,
-  createUsageEvent,
   updateUsageEvent,
   deleteUsageEvent,
   endUsageEvent,
@@ -287,10 +283,10 @@ const tableData = ref<UsageEvent[]>([])
 // 统计数据
 const showStats = ref(true)
 const stats = ref({
-  total_events: 0,
-  total_duration: 0,
-  validated_events: 0,
-  pending_events: 0
+  total_count: 0,
+  total_duration_minutes: 0,
+  validated_count: 0,
+  pending_count: 0
 })
 
 // 过滤器
@@ -303,7 +299,7 @@ const total = ref(0)
 
 // 对话框
 const dialogVisible = ref(false)
-const dialogMode = ref<'create' | 'edit'>('create')
+const dialogMode = ref<'create' | 'edit'>('edit')
 const dialogTitle = computed(() => (dialogMode.value === 'create' ? '创建使用记录' : '编辑使用记录'))
 const submitting = ref(false)
 
@@ -351,12 +347,6 @@ const loadUsageEvents = async () => {
   } finally {
     loading.value = false
   }
-}
-
-// 打开创建对话框
-const handleCreate = () => {
-  dialogMode.value = 'create'
-  dialogVisible.value = true
 }
 
 // 打开编辑对话框
@@ -457,8 +447,9 @@ const handleSubmit = async () => {
       }
 
       if (dialogMode.value === 'create') {
-        await createUsageEvent(submitData)
-        ElMessage.success('创建成功')
+        // Obsolete
+        // await createUsageEvent(submitData)
+        // ElMessage.success('创建成功')
       } else {
         await updateUsageEvent(formData.id!, submitData)
         ElMessage.success('更新成功')
@@ -466,7 +457,7 @@ const handleSubmit = async () => {
       dialogVisible.value = false
       await loadUsageEvents()
     } catch (error) {
-      ElMessage.error(dialogMode.value === 'create' ? '创建失败' : '更新失败')
+      ElMessage.error('更新失败')
       console.error(error)
     } finally {
       submitting.value = false

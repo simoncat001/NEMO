@@ -2,6 +2,7 @@
 Reservation model - SQLAlchemy ORM
 """
 from typing import TYPE_CHECKING, List
+from datetime import datetime
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
@@ -20,10 +21,18 @@ class Reservation(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     
+    # Missing columns
+    # creation_time = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    # title = Column(Text, default="", nullable=False)
+    short_notice = Column(Boolean, default=False, nullable=False)
+    
+    # 
     # 用户和工具
     user_id = Column(Integer, ForeignKey("user.id"), nullable=False, index=True)
     tool_id = Column(Integer, ForeignKey("tool.id"), nullable=True, index=True)
-    area_id = Column(Integer, ForeignKey("area.id"), nullable=True, index=True)
+    # descendant_id = Column(Integer, ForeignKey("reservation.id"), nullable=True)
+    # area_id = Column(Integer, ForeignKey("area.id"), nullable=True, index=True)
+    area_id = Column(Integer, nullable=True, index=True)
     
     # 项目
     project_id = Column(Integer, ForeignKey("project.id"), nullable=False, index=True)
@@ -36,6 +45,7 @@ class Reservation(Base):
     cancelled = Column(Boolean, default=False, nullable=False)
     cancellation_time = Column(DateTime(timezone=True), nullable=True)
     cancelled_by_id = Column(Integer, ForeignKey("user.id"), nullable=True)
+    creator_id = Column(Integer, ForeignKey("user.id"), nullable=False)
     
     missed = Column(Boolean, default=False, nullable=False)
     

@@ -110,6 +110,14 @@
                 详情
               </el-button>
               <el-button
+                type="warning"
+                size="small"
+                :icon="Money"
+                @click="loadRates(row.id)"
+              >
+                费率
+              </el-button>
+              <el-button
                 type="primary"
                 size="small"
                 :icon="Edit"
@@ -175,6 +183,21 @@
           />
         </el-form-item>
         <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="计费类型">
+              <el-select v-model="formData.price_type" placeholder="选择类型" style="width: 100%">
+                <el-option label="按次收费" :value="0" />
+                <el-option label="按时收费" :value="1" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="基础价格">
+              <el-input-number v-model="formData.price_per_hour" :min="0" :precision="2" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="16">
           <el-col :span="8">
             <el-form-item label="运行状态">
               <el-switch
@@ -211,6 +234,42 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 费率管理对话框 -->
+    <el-dialog
+      v-model="rateDialogVisible"
+      title="分时费率配置"
+      width="600px"
+    >
+      <el-card shadow="never" style="margin-bottom: 20px">
+        <template #header>添加时段</template>
+        <el-form :inline="true" :model="rateForm">
+          <el-form-item label="开始">
+            <el-time-picker v-model="rateForm.start_time" value-format="HH:mm:ss" placeholder="Start" style="width: 120px"/>
+          </el-form-item>
+          <el-form-item label="结束">
+            <el-time-picker v-model="rateForm.end_time" value-format="HH:mm:ss" placeholder="End" style="width: 120px"/>
+          </el-form-item>
+          <el-form-item label="价格">
+            <el-input-number v-model="rateForm.price" :min="0" style="width: 100px"/>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="handleAddRate">添加</el-button>
+          </el-form-item>
+        </el-form>
+      </el-card>
+
+      <el-table :data="rateList" border stripe>
+        <el-table-column prop="start_time" label="开始时间" />
+        <el-table-column prop="end_time" label="结束时间" />
+        <el-table-column prop="price" label="费率" />
+        <el-table-column label="操作" width="100">
+            <template #default="{ row }">
+                <el-button type="danger" icon="Delete" circle size="small" @click="handleDeleteRate(row.id)"/>
+            </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
@@ -226,13 +285,56 @@ import {
   View,
   Search,
   CircleCheck,
-  CircleClose
+  CircleClose,
+  Money // New Icon
 } from '@element-plus/icons-vue'
-import { getTools, createTool, updateTool, deleteTool } from '@/api/tools'
+import { getTools, createTool, updateTool, deleteTool, getToolRates, createToolRate, deleteToolRate, type ToolRate } from '@/api/tools'
 import type { Tool } from '@/types'
 import { formatDateTime } from '@/utils/helpers'
 
 const router = useRouter()
+
+// 费率管理
+const rateDialogVisible = ref(false)
+const currentRateToolId = ref<number>(0)
+const rateList = ref<ToolRate[]>([])
+const rateForm = reactive({
+    start_time: '',
+    end_time: '',
+    price: 0
+})
+
+const loadRates = async (toolId: number) => {
+    currentRateToolId.value = toolId
+    rateList.value = await getToolRates(toolId)
+    rateDialogVisible.value = true
+}
+
+const handleAddRate = async () => {
+    try {
+        await createToolRate(currentRateToolId.value, {
+            ...rateForm,
+            tool_id: currentRateToolId.value
+        })
+        ElMessage.success('添加成功')
+        rateList.value = await getToolRates(currentRateToolId.value)
+        rateForm.start_time = ''
+        rateForm.end_time = ''
+        rateForm.price = 0
+    } catch (e) {
+        ElMessage.error('添加失败')
+    }
+}
+
+const handleDeleteRate = async (rateId: number) => {
+    try {
+        await deleteToolRate(currentRateToolId.value, rateId)
+        ElMessage.success('删除成功')
+        rateList.value = await getToolRates(currentRateToolId.value)
+    } catch (e) {
+        ElMessage.error('删除失败')
+    }
+}
 
 // 数据列表
 const loading = ref(false)
@@ -262,7 +364,9 @@ const formData = reactive<Partial<Tool>>({
   description: '',
   operational: true,
   visible: true,
-  requires_reservation: false
+  requires_reservation: true,
+  price_type: 1,
+  price_per_hour: 0
 })
 
 const formRules: FormRules = {
@@ -321,7 +425,9 @@ const handleEdit = (row: Tool) => {
     description: row.description,
     operational: row.operational,
     visible: row.visible,
-    requires_reservation: row.requires_reservation
+    requires_reservation: row.requires_reservation,
+    price_type: row.price_type,
+    price_per_hour: row.price_per_hour
   })
   dialogVisible.value = true
 }

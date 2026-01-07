@@ -97,9 +97,9 @@ export const getUsageEventStats = (params?: {
     end_date?: string
 }) => {
     return request.get<ApiResponse<{
-        total_events: number
-        total_duration: number
-        validated_events: number
-        pending_events: number
+        total_count: number
+        total_duration_minutes: number
+        validated_count: number
+        pending_count: number
     }>>('/usage-events/stats', { params })
 }

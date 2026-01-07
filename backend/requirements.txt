@@ -4,7 +4,8 @@
 fastapi==0.115.5
 uvicorn[standard]==0.32.1
 sqlalchemy==2.0.36
-asyncpg==0.30.0
+aiomysql==0.2.0
+pymysql==1.1.0
 pydantic==2.10.3
 pydantic-settings==2.6.1
 python-jose[cryptography]==3.3.0
@@ -19,7 +20,7 @@ python-dotenv>=0.21.0
 requests>=2.31.0
 
 # Database
-psycopg2-binary==2.9.9
+# MySQL connectors: aiomysql for async, pymysql as fallback
 
 # Testing
 pytest==8.3.4

@@ -270,3 +270,26 @@ export interface TableColumn {
     fixed?: boolean | 'left' | 'right'
     sortable?: boolean
 }
+
+// ==================== Billing Types ====================
+export interface Bill {
+    id: number
+    account_id: number
+    reference_number: string
+    period_start: string
+    period_end: string
+    issued_date: string
+    due_date?: string
+    total_amount: number
+    status: string
+    
+    // Optional relations if needed
+    account?: Account
+}
+
+export interface BillGenerationRequest {
+    start_date: string
+    end_date: string
+    account_ids?: number[]
+}
+

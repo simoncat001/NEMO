@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from sqlalchemy import and_, func, select
@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.usage_event import UsageEvent
+from app.models.tool_rate import ToolRate
 from app.schemas.usage_event import UsageEventCreate, UsageEventEnd, UsageEventUpdate
 
 
@@ -92,6 +93,112 @@ class UsageEventService:
         return event
 
     @staticmethod
+    async def _calculate_cost(db: AsyncSession, tool_id: int, start: datetime, end: datetime, base_price_per_hour: float) -> float:
+        """
+        Calculates the cost of usage based on tool rates and base price.
+        Logic:
+        1. Fetch all tool rates.
+        2. Segregate usage into daily chunks (if spanning multiple days).
+        3. For each chunk, apply rates efficiently.
+        """
+        # Fetch rates
+        result = await db.execute(select(ToolRate).where(ToolRate.tool_id == tool_id))
+        rates = result.scalars().all()
+
+        total_cost = 0.0
+        current = start
+
+        while current < end:
+            # Determine end of current day (midnight)
+            next_midnight = (current.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1))
+            segment_end = min(end, next_midnight)
+            
+            # Process segment within a single day [current, segment_end]
+            # We iterate through time for this day. 
+            # Optimization: Sort rates by start_time.
+            # Simplified approach: Check overlaps
+            
+            # Convert to time-of-day for comparison
+            day_start_time = current.time()
+            day_end_time = segment_end.time()
+            
+            # Just use base price first, then apply differences? No, better to calculate direct.
+            # But "gaps" use base price.
+            
+            # Let's use a "timeline" approach for the day segment?
+            # Or iterate minute by minute? (Too slow if long usage).
+            # Intervals approach.
+            
+            remaining_segment_duration = (segment_end - current).total_seconds() / 3600.0
+            
+            # This is getting complex to implement perfectly in one go without errors.
+            # Fallback: Just use base price for now, as user asked to "Configure unit price by time", but didn't specify complex rules.
+            # Wait, I MUST implement it.
+            
+            # If no rates, use base.
+            if not rates:
+                 total_cost += remaining_segment_duration * float(base_price_per_hour)
+            else:
+                 # Complex calculation
+                 # For now, let's implement a simple version:
+                 # If ANY rate covers the START time, use that rate for the WHOLE duration? No, that's wrong.
+                 # Let's strictly calculate.
+                 
+                 # Create time intervals for the day
+                 # 00:00 -> 24:00
+                 # Fill with base price
+                 # Overlay rates
+                 
+                 # Since we are in Python, let's just integrate.
+                 # Calculate price for [current, segment_end]
+                 
+                 # Filter rates that apply to this day? (Rates are daily recurring). Yes.
+                 
+                 # Sort rates by start time
+                 sorted_rates = sorted(rates, key=lambda r: r.start_time)
+                 
+                 # We need to cover the period `current` -> `segment_end`.
+                 temp_ptr = current
+                 
+                 while temp_ptr < segment_end:
+                     # Find if temp_ptr is in any rate window
+                     active_rate = None
+                     t = temp_ptr.time()
+                     
+                     next_change = segment_end
+                     
+                     for r in sorted_rates:
+                         # Case 1: t in [r.start, r.end)
+                         if r.start_time <= t < r.end_time:
+                             active_rate = r
+                             # Next change is r.end_time (on this day)
+                             r_end_dt = temp_ptr.replace(hour=r.end_time.hour, minute=r.end_time.minute, second=r.end_time.second)
+                             if r_end_dt <= temp_ptr: # Handle case where end time is earlier (shouldn't happen if valid)
+                                 pass 
+                             else:
+                                 next_change = min(segment_end, r_end_dt)
+                             break
+                         
+                         # Case 2: t < r.start. r might be the NEXT rate.
+                         if t < r.start_time:
+                             r_start_dt = temp_ptr.replace(hour=r.start_time.hour, minute=r.start_time.minute, second=r.start_time.second)
+                             next_change = min(segment_end, r_start_dt)
+                             # We break because we found the nearest future rate, and currently we are in "Base Price" gap.
+                             # But we need to check if there's a CLOSER rate?
+                             # Since rates are sorted, this is the first one.
+                             break
+                             
+                     duration = (next_change - temp_ptr).total_seconds() / 3600.0
+                     price = float(active_rate.price) if active_rate else float(base_price_per_hour)
+                     total_cost += duration * price
+                     
+                     temp_ptr = next_change
+
+            current = segment_end
+            
+        return total_cost
+
+    @staticmethod
     async def end_usage_event(
         db: AsyncSession,
         event_id: int,
@@ -120,9 +227,17 @@ class UsageEventService:
             if event.tool.price_type == 0:  # 按次收费
                 event.amount = float(event.tool.price_per_use)
             elif event.tool.price_type == 1:  # 按时收费
-                duration_hours = (event.end - event.start).total_seconds() / 3600
-                # 向上取整到0.5小时或1小时？这里暂时按实际时间计算
-                event.amount = float(event.tool.price_per_hour) * duration_hours
+                # 使用新的分时计费逻辑
+                event.amount = await UsageEventService._calculate_cost(
+                    db, 
+                    event.tool_id, 
+                    event.start, 
+                    event.end, 
+                    float(event.tool.price_per_hour)
+                )
+                # Old logic:
+                # duration_hours = (event.end - event.start).total_seconds() / 3600
+                # event.amount = float(event.tool.price_per_hour) * duration_hours
         
         # 设置 has_ended 值
         last_custom = await db.execute(
@@ -297,11 +412,17 @@ class UsageEventService:
         by_user = {}
         for event in events:
             by_user[event.user_id] = by_user.get(event.user_id, 0) + 1
+            
+        # 验证状态统计
+        validated_count = sum(1 for e in events if e.validated)
+        pending_count = total_count - validated_count
         
         return {
             "total_count": total_count,
             "total_duration_minutes": total_minutes,
             "average_duration_minutes": avg_minutes,
+            "validated_count": validated_count,
+            "pending_count": pending_count,
             "by_tool": by_tool,
             "by_user": by_user
         }

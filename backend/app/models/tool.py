@@ -74,6 +74,13 @@ class Tool(Base):
         back_populates="tool",
         cascade="all, delete-orphan"
     )
+
+    # 关系 - ToolRate
+    rates: List["ToolRate"] = relationship(
+        "ToolRate",
+        back_populates="tool",
+        cascade="all, delete-orphan"
+    )
     
     def __repr__(self):
         return f"<Tool(id={self.id}, name='{self.name}')>"

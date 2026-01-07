@@ -11,12 +11,13 @@ from jose import JWTError, jwt
 from app.core.config import settings
 from app.core.security import create_access_token, verify_password
 from app.db.session import get_db
-from app.schemas.user import Token, User, UserLogin
+from app.schemas.user import Token, User, UserLogin, UserCreate
 from app.services.user_service import UserService
 
 router = APIRouter()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
+
 
 
 async def get_current_user(
@@ -43,6 +44,39 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     
+    return user
+
+
+@router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
+async def register(
+    user_in: UserCreate,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    注册新用户
+    """
+    service = UserService(db)
+    
+    # 检查用户名是否存在
+    existing_user = await service.get_user_by_username(user_in.username)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already registered"
+        )
+    
+    # 检查邮箱是否存在
+    existing_email = await service.get_user_by_email(user_in.email)
+    if existing_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+    
+    # 新注册用户默认未激活，需要管理员审核
+    user_in.is_active = False
+    
+    user = await service.create_user(user_in)
     return user
 
 
@@ -123,3 +157,9 @@ async def login_json(
 async def read_users_me(current_user: User = Depends(get_current_user)):
     """获取当前用户信息"""
     return current_user
+
+
+@router.post("/logout")
+async def logout():
+    """退出登录"""
+    return {"message": "Logged out successfully"}

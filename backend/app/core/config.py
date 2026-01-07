@@ -4,7 +4,7 @@ Core configuration settings
 
 from typing import List, Optional
 from pydantic_settings import BaseSettings
-from pydantic import AnyHttpUrl, PostgresDsn, field_validator
+from pydantic import AnyHttpUrl, field_validator
 
 
 class Settings(BaseSettings):
@@ -25,14 +25,14 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
     
-    # PostgreSQL 数据库配置
-    POSTGRES_SERVER: str = "localhost"
-    POSTGRES_USER: str = "nemo_user"
-    POSTGRES_PASSWORD: str = "123456"
-    POSTGRES_DB: str = "nemo_db"
-    POSTGRES_PORT: int = 5432
+    # MySQL 数据库配置
+    MYSQL_SERVER: str = "localhost"
+    MYSQL_USER: str = "root"
+    MYSQL_PASSWORD: str = "12345678"
+    MYSQL_DB: str = "nemo"
+    MYSQL_PORT: int = 3306
     
-    DATABASE_URL: str = "postgresql+asyncpg://nemo_user:123456@localhost:5432/nemo_db"
+    DATABASE_URL: str = "mysql+aiomysql://root:12345678@localhost:3306/nemo"
     
     # JWT 配置
     SECRET_KEY: str = "your-secret-key-here-please-change-in-production"

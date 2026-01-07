@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Text, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.session import Base
@@ -48,6 +48,14 @@ class StaffCharge(Base):
     
     # 状态字段
     validated: Mapped[bool] = mapped_column(Boolean, default=False)
+    
+    # 费用与账单
+    amount: Mapped[float] = mapped_column(Numeric(10, 2), default=0.00)
+    bill_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("bill.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
     waived: Mapped[bool] = mapped_column(Boolean, default=False)
     
     # 文本字段

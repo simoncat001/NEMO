@@ -16,6 +16,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: false, title: '登录' },
     },
     {
+        path: '/register',
+        name: 'Register',
+        component: () => import('@/views/auth/Register.vue'),
+        meta: { requiresAuth: false, title: '注册' },
+    },
+    {
         path: '/',
         component: Layout,
         redirect: '/dashboard',
@@ -27,12 +33,19 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/dashboard/Dashboard.vue'),
                 meta: { title: '仪表盘' },
             },
+            // 用户管理
+            {
+                path: 'users',
+                name: 'UserList',
+                component: () => import('@/views/user/UserList.vue'),
+                meta: { title: '用户列表', requiresStaff: true },
+            },
             // 工具管理
             {
                 path: 'tools',
                 name: 'Tools',
                 component: () => import('@/views/tools/ToolList.vue'),
-                meta: { title: '工具列表' },
+                meta: { title: '工具列表', requiresStaff: true },
             },
             {
                 path: 'tool-control',
@@ -65,6 +78,12 @@ const routes: RouteRecordRaw[] = [
                 name: 'Accounts',
                 component: () => import('@/views/accounts/AccountList.vue'),
                 meta: { title: '账户管理', requiresStaff: true },
+            },
+            {
+                path: 'billing',
+                name: 'Billing',
+                component: () => import('@/views/billing/BillList.vue'),
+                meta: { title: '账单管理', requiresStaff: true },
             },
             // 使用记录
             {

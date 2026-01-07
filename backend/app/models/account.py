@@ -8,6 +8,7 @@ from app.db.session import Base
 
 if TYPE_CHECKING:
     from app.models.project import Project
+    from app.models.bill import Bill
 
 
 class AccountType(Base):
@@ -46,6 +47,7 @@ class Account(Base):
     # 关系
     type: Mapped[Optional["AccountType"]] = relationship("AccountType", back_populates="accounts")
     projects: Mapped[List["Project"]] = relationship("Project", back_populates="account")
+    bills: Mapped[List["Bill"]] = relationship("Bill", back_populates="account")
 
     def __repr__(self):
         return f"<Account(id={self.id}, name='{self.name}', active={self.active})>"

@@ -14,10 +14,12 @@ from app.models.staff_charge import StaffCharge
 from app.models.configuration import Configuration, ConfigurationOption, ConfigurationHistory
 from app.models.consumable import Consumable
 from app.models.consumable_withdraw import ConsumableWithdraw
+from app.models.tool_rate import ToolRate
 
 __all__ = [
     "User",
     "Tool",
+    "ToolRate",
     "Reservation",
     "Project",
     "Account",

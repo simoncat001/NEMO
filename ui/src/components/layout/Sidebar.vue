@@ -30,12 +30,12 @@
         <template #title>仪表盘</template>
       </el-menu-item>
 
-      <el-menu-item index="/tools">
+      <el-menu-item index="/tools" v-if="authStore.isStaff()">
         <el-icon><Tools /></el-icon>
         <template #title>工具管理</template>
       </el-menu-item>
 
-      <el-menu-item index="/tool-control">
+      <el-menu-item index="/tool-control" v-if="authStore.isStaff()">
         <el-icon><Monitor /></el-icon>
         <template #title>仪器控制</template>
       </el-menu-item>
@@ -48,18 +48,24 @@
         <el-menu-item index="/reservations">预约列表</el-menu-item>
         <el-menu-item index="/calendar">预约日历</el-menu-item>
       </el-sub-menu>
+      
+      <!-- 普通用户账单查看 -->
+      <el-menu-item index="/billing" v-if="!authStore.isStaff()">
+        <el-icon><CreditCard /></el-icon>
+        <template #title>我的账单</template>
+      </el-menu-item>
 
       <el-menu-item index="/usage-events">
         <el-icon><Clock /></el-icon>
         <template #title>使用记录</template>
       </el-menu-item>
 
-      <el-menu-item index="/tasks">
+      <el-menu-item index="/tasks" v-if="authStore.isStaff()">
         <el-icon><List /></el-icon>
         <template #title>任务管理</template>
       </el-menu-item>
 
-      <el-menu-item index="/consumables">
+      <el-menu-item index="/consumables" v-if="authStore.isStaff()">
         <el-icon><Box /></el-icon>
         <template #title>耗材管理</template>
       </el-menu-item>
@@ -69,7 +75,9 @@
           <el-icon><Setting /></el-icon>
           <span>系统管理</span>
         </template>
+        <el-menu-item index="/users">用户管理</el-menu-item>
         <el-menu-item index="/accounts">账户管理</el-menu-item>
+        <el-menu-item index="/billing">账单管理</el-menu-item>
         <el-menu-item index="/staff-charges">员工收费</el-menu-item>
         <el-menu-item index="/configurations">配置管理</el-menu-item>
       </el-sub-menu>

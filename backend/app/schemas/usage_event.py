@@ -68,5 +68,7 @@ class UsageEventStats(BaseModel):
     total_count: int
     total_duration_minutes: int
     average_duration_minutes: float
+    validated_count: int
+    pending_count: int
     by_tool: dict[int, int]  # tool_id -> count
     by_user: dict[int, int]  # user_id -> count

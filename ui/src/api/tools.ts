@@ -52,6 +52,41 @@ export function getToolStatus(id: number): Promise<boolean> {
     })
 }
 
+// ==================== 费率管理 ====================
+
+export interface ToolRate {
+    id?: number
+    tool_id: number
+    start_time: string // HH:MM:SS
+    end_time: string   // HH:MM:SS
+    price: number
+}
+
+// 获取工具费率
+export function getToolRates(toolId: number): Promise<ToolRate[]> {
+    return request({
+        url: `/tools/${toolId}/rates`,
+        method: 'get',
+    })
+}
+
+// 创建工具费率
+export function createToolRate(toolId: number, data: ToolRate): Promise<ToolRate> {
+    return request({
+        url: `/tools/${toolId}/rates`,
+        method: 'post',
+        data,
+    })
+}
+
+// 删除工具费率
+export function deleteToolRate(toolId: number, rateId: number): Promise<void> {
+    return request({
+        url: `/tools/${toolId}/rates/${rateId}`,
+        method: 'delete',
+    })
+}
+
 // 启用工具
 export function enableTool(id: number, data: ToolEnableRequest): Promise<UsageEvent> {
     return request({

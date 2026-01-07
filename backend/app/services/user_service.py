@@ -56,40 +56,30 @@ class UserService:
     
     async def create_user(self, user_in: UserCreate) -> User:
         """创建用户"""
-        # hashed_password is not in User model anymore
+        hashed = get_password_hash(user_in.password)
         user = User(
             username=user_in.username,
             email=user_in.email,
             first_name=user_in.first_name,
             last_name=user_in.last_name,
-            # hashed_password=get_password_hash(user_in.password),
+            password=hashed,
             is_active=user_in.is_active,
             is_staff=user_in.is_staff,
             is_superuser=user_in.is_superuser,
             badge_number=user_in.badge_number,
-            phone=user_in.phone,
-            # Set required fields with defaults
-            domain='LOCAL',
-            is_technician=False,
-            training_required=False,
-            is_service_personnel=False,
-            is_facility_manager=False,
-            is_accounting_officer=False,
-            is_user_office=False
+            phone=user_in.phone
         )
         self.db.add(user)
         await self.db.commit()
         await self.db.refresh(user)
         
         # Insert password into local_auth
-        hashed = get_password_hash(user_in.password)
         await self.db.execute(
             text("INSERT INTO local_auth (user_id, hashed_password) VALUES (:uid, :pwd)"),
             {"uid": user.id, "pwd": hashed}
         )
         await self.db.commit()
         
-        user.hashed_password = hashed
         return user
     
     async def update_user(self, user_id: int, user_in: UserUpdate) -> Optional[User]:

@@ -28,6 +28,9 @@ class ToolUpdate(BaseModel):
     operational: Optional[bool] = None
     description: Optional[str] = None
     location: Optional[str] = None
+    price_type: Optional[int] = None
+    price_per_use: Optional[float] = None
+    price_per_hour: Optional[float] = None
     phone_number: Optional[str] = None
 
 

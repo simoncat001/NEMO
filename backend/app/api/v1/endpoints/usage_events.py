@@ -34,6 +34,9 @@ async def get_usage_events(
     current_user: User = Depends(get_current_user),
 ):
     """获取使用记录列表"""
+    if not current_user.is_staff and not current_user.is_superuser:
+        user_id = current_user.id
+
     return await UsageEventService.get_usage_events(
         db, skip, limit, user_id, tool_id, project_id,
         in_progress_only, start_date, end_date
@@ -47,6 +50,11 @@ async def create_usage_event(
     current_user: User = Depends(get_current_user),
 ):
     """创建使用记录（开始使用工具）"""
+    # 普通用户只能为自己开启
+    if not current_user.is_staff and not current_user.is_superuser:
+        event.user_id = current_user.id
+        event.operator_id = current_user.id
+
     # 检查工具是否已被占用
     active_usage = await UsageEventService.get_active_usage_for_tool(db, event.tool_id)
     if active_usage:
@@ -67,12 +75,10 @@ async def get_usage_stats(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """获取使用统计（需要管理员权限）"""
-    if not current_user.is_staff:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only staff can view usage statistics"
-        )
+    """获取使用统计"""
+    # 普通用户只能查看自己的统计
+    if not current_user.is_staff and not current_user.is_superuser:
+        user_id = current_user.id
     
     return await UsageEventService.get_usage_stats(
         db, start_date, end_date, tool_id, user_id

@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.schemas.reservation import Reservation, ReservationCreate, ReservationUpdate
 from app.services.reservation_service import ReservationService
+from app.api.v1.endpoints.auth import get_current_user
+from app.models.user import User
 
 router = APIRouter()
 
@@ -21,9 +23,14 @@ async def get_reservations(
     tool_id: int = None,
     start_date: datetime = None,
     end_date: datetime = None,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """获取预约列表"""
+    # 普通用户只能查看自己的预约
+    if not current_user.is_staff and not current_user.is_superuser:
+        user_id = current_user.id
+
     service = ReservationService(db)
     reservations = await service.get_reservations(
         skip=skip,
@@ -39,7 +46,8 @@ async def get_reservations(
 @router.get("/{reservation_id}", response_model=Reservation)
 async def get_reservation(
     reservation_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """获取单个预约"""
     service = ReservationService(db)
@@ -49,15 +57,29 @@ async def get_reservation(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Reservation not found"
         )
+    
+    # 权限检查
+    if not current_user.is_staff and not current_user.is_superuser:
+        if reservation.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to view this reservation"
+            )
+            
     return reservation
 
 
 @router.post("/", response_model=Reservation, status_code=status.HTTP_201_CREATED)
 async def create_reservation(
     reservation_in: ReservationCreate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """创建新预约"""
+    # 普通用户只能给自己预约
+    if not current_user.is_staff and not current_user.is_superuser:
+        reservation_in.user_id = current_user.id
+
     service = ReservationService(db)
     
     # 验证时间
@@ -79,7 +101,7 @@ async def create_reservation(
             detail="Time slot is already reserved"
         )
     
-    reservation = await service.create_reservation(reservation_in)
+    reservation = await service.create_reservation(reservation_in, creator_id=current_user.id)
     return reservation
 
 

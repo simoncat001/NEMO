@@ -18,6 +18,10 @@ class ConsumableWithdraw(Base):
     
     quantity = Column(Integer, default=1, nullable=False, comment="数量")
     amount = Column(Numeric(10, 2), default=0.00, nullable=False, comment="总金额")
+    
+    # Bill
+    bill_id = Column(Integer, ForeignKey("bill.id", ondelete="SET NULL"), nullable=True)
+
     date = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
     
     # 关系

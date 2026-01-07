@@ -51,6 +51,13 @@ class UsageEvent(Base):
     # 费用
     amount: Mapped[float] = mapped_column(Numeric(10, 2), default=0.00, comment="费用金额")
     
+    # 账单
+    bill_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("bill.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
+    
     # 状态字段
     has_ended: Mapped[int] = mapped_column(BigInteger, default=0, index=True)
     validated: Mapped[bool] = mapped_column(Boolean, default=False)

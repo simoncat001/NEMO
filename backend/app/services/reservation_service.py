@@ -71,10 +71,14 @@ class ReservationService:
         conflicts = result.scalars().all()
         return len(conflicts) > 0
     
-    async def create_reservation(self, reservation_in: ReservationCreate) -> Reservation:
+    async def create_reservation(self, reservation_in: ReservationCreate, creator_id: int) -> Reservation:
         """创建预约"""
         reservation = Reservation(
             user_id=reservation_in.user_id,
+            creator_id=creator_id,
+            # creation_time=datetime.utcnow(),
+            # title="",
+            short_notice=False,
             tool_id=reservation_in.tool_id,
             area_id=reservation_in.area_id,
             project_id=reservation_in.project_id,
