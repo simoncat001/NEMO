@@ -1,6 +1,0 @@
-[Unit]
-Description=Send scheduled outage reminder emails from NEMO
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/docker exec nemo django-admin send_email_scheduled_outage_reminders

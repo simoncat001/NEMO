@@ -1,8 +1,0 @@
-[Unit]
-Description=Send usage reminder emails every hour
-
-[Timer]
-OnCalendar=hourly
-
-[Install]
-WantedBy=multi-user.target

@@ -1,8 +1,0 @@
-[Unit]
-Description=Email out of time reservation notification every minute in NEMO
-
-[Timer]
-OnCalendar=minutely
-
-[Install]
-WantedBy=multi-user.target
