@@ -144,7 +144,7 @@
         <el-tab-pane label="最近预约" name="reservations">
           <el-table :data="recentReservations" stripe>
             <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column label="工具" min-width="150">
+            <el-table-column label="仪器" min-width="150">
               <template #default="{ row }">
                 {{ row.tool?.name || '-' }}
               </template>
@@ -166,7 +166,7 @@
         <el-tab-pane label="使用历史" name="usageEvents">
           <el-table :data="recentUsageEvents" stripe>
             <el-table-column prop="id" label="ID" width="80" />
-            <el-table-column label="工具" min-width="150">
+            <el-table-column label="仪器" min-width="150">
               <template #default="{ row }">
                 {{ row.tool?.name || '-' }}
               </template>

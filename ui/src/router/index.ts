@@ -40,12 +40,12 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/user/UserList.vue'),
                 meta: { title: '用户列表', requiresStaff: true },
             },
-            // 工具管理
+            // 仪器管理
             {
                 path: 'tools',
                 name: 'Tools',
                 component: () => import('@/views/tools/ToolList.vue'),
-                meta: { title: '工具列表', requiresStaff: true },
+                meta: { title: '仪器列表', requiresStaff: true },
             },
             {
                 path: 'tool-control',
@@ -57,7 +57,7 @@ const routes: RouteRecordRaw[] = [
                 path: 'tools/:id',
                 name: 'ToolDetail',
                 component: () => import('@/views/tools/ToolDetail.vue'),
-                meta: { title: '工具详情' },
+                meta: { title: '仪器详情' },
             },
             // 预约管理
             {
@@ -71,13 +71,6 @@ const routes: RouteRecordRaw[] = [
                 name: 'Calendar',
                 component: () => import('@/views/reservations/Calendar.vue'),
                 meta: { title: '预约日历' },
-            },
-            // 账户管理
-            {
-                path: 'accounts',
-                name: 'Accounts',
-                component: () => import('@/views/accounts/AccountList.vue'),
-                meta: { title: '账户管理', requiresStaff: true },
             },
             {
                 path: 'billing',

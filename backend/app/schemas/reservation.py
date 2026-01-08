@@ -7,6 +7,30 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
+class ReservationUser(BaseModel):
+    id: int
+    username: str
+
+    class Config:
+        from_attributes = True
+
+
+class ReservationTool(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
+class ReservationProject(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        from_attributes = True
+
+
 class ReservationBase(BaseModel):
     """预约基础模型"""
     tool_id: Optional[int] = None
@@ -15,6 +39,7 @@ class ReservationBase(BaseModel):
     start: datetime
     end: datetime
     additional_information: str = ""
+    self_configuration: bool = False
 
 
 class ReservationCreate(ReservationBase):
@@ -43,4 +68,6 @@ class ReservationInDB(ReservationBase):
 
 class Reservation(ReservationInDB):
     """返回给客户端的预约"""
-    pass
+    user: Optional[ReservationUser] = None
+    tool: Optional[ReservationTool] = None
+    project: Optional[ReservationProject] = None

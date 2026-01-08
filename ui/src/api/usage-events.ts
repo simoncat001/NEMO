@@ -35,8 +35,8 @@ export const getUsageEvent = (eventId: number) => {
 /**
  * 结束使用记录
  */
-export const endUsageEvent = (eventId: number, data?: { end?: string }) => {
-    return request.post<ApiResponse<UsageEvent>>(`/usage-events/${eventId}/end`, data)
+export const endUsageEvent = (eventId: number, data?: { run_data?: string }) => {
+    return request.post<ApiResponse<UsageEvent>>(`/usage-events/${eventId}/end`, data || {})
 }
 
 /**

@@ -7,7 +7,7 @@
             <el-icon class="stat-icon tool-icon"><Tools /></el-icon>
             <div>
               <div class="stat-value">{{ stats.total_tools }}</div>
-              <div class="stat-label">工具总数</div>
+              <div class="stat-label">仪器总数</div>
             </div>
           </div>
         </el-card>
@@ -57,7 +57,7 @@
             <span>最近预约</span>
           </template>
           <el-table :data="recentReservations" style="width: 100%">
-            <el-table-column prop="tool_name" label="工具" />
+            <el-table-column prop="tool_name" label="仪器" />
             <el-table-column prop="start" label="开始时间" />
             <el-table-column prop="end" label="结束时间" />
           </el-table>
@@ -70,7 +70,7 @@
             <span>待处理任务</span>
           </template>
           <el-table :data="pendingTasks" style="width: 100%">
-            <el-table-column prop="tool_name" label="工具" />
+            <el-table-column prop="tool_name" label="仪器" />
             <el-table-column prop="problem_description" label="问题描述" show-overflow-tooltip />
             <el-table-column label="紧急程度">
               <template #default="{ row }">
@@ -89,6 +89,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { getTaskUrgencyLabel, getTaskUrgencyType } from '@/utils/helpers'
+import { getDashboard } from '@/api/dashboard'
 
 const stats = ref({
   total_tools: 0,
@@ -104,13 +105,10 @@ const getUrgencyLabel = getTaskUrgencyLabel
 const getUrgencyType = getTaskUrgencyType
 
 onMounted(async () => {
-  // TODO: 从 API 加载数据
-  stats.value = {
-    total_tools: 15,
-    today_reservations: 8,
-    active_tasks: 3,
-    active_users: 25,
-  }
+  const data = await getDashboard()
+  stats.value = data.stats
+  recentReservations.value = data.recent_reservations as any
+  pendingTasks.value = data.pending_tasks as any
 })
 </script>
 

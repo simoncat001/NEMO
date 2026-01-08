@@ -6,7 +6,7 @@
         <el-col :span="12">
           <el-space>
             <el-button type="primary" :icon="Plus" @click="handleCreate">
-              创建工具
+              创建仪器
             </el-button>
             <el-button :icon="Refresh" @click="loadTools">
               刷新
@@ -17,7 +17,7 @@
           <el-space>
             <el-input
               v-model="filterName"
-              placeholder="搜索工具名称"
+              placeholder="搜索仪器名称"
               clearable
               style="width: 200px"
               @change="loadTools"
@@ -51,7 +51,7 @@
         style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="工具名称" min-width="180">
+        <el-table-column prop="name" label="仪器名称" min-width="180">
           <template #default="{ row }">
             <el-link type="primary" @click="handleViewDetail(row)">
               {{ row.name }}
@@ -165,8 +165,8 @@
         :rules="formRules"
         label-width="120px"
       >
-        <el-form-item label="工具名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入工具名称" />
+        <el-form-item label="仪器名称" prop="name">
+          <el-input v-model="formData.name" placeholder="请输入仪器名称" />
         </el-form-item>
         <el-form-item label="分类" prop="category">
           <el-input v-model="formData.category" placeholder="请输入分类" />
@@ -179,7 +179,7 @@
             v-model="formData.description"
             type="textarea"
             :rows="4"
-            placeholder="请输入工具描述"
+            placeholder="请输入仪器描述"
           />
         </el-form-item>
         <el-row :gutter="16">
@@ -352,7 +352,7 @@ const total = ref(0)
 // 对话框
 const dialogVisible = ref(false)
 const dialogMode = ref<'create' | 'edit'>('create')
-const dialogTitle = computed(() => (dialogMode.value === 'create' ? '创建工具' : '编辑工具'))
+const dialogTitle = computed(() => (dialogMode.value === 'create' ? '创建仪器' : '编辑仪器'))
 const submitting = ref(false)
 
 // 表单
@@ -370,11 +370,11 @@ const formData = reactive<Partial<Tool>>({
 })
 
 const formRules: FormRules = {
-  name: [{ required: true, message: '请输入工具名称', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入仪器名称', trigger: 'blur' }],
   category: [{ required: true, message: '请输入分类', trigger: 'blur' }]
 }
 
-// 加载工具列表
+// 加载仪器列表
 const loadTools = async () => {
   loading.value = true
   try {
@@ -401,7 +401,7 @@ const loadTools = async () => {
     tableData.value = data
     total.value = data.length
   } catch (error) {
-    ElMessage.error('加载工具列表失败')
+    ElMessage.error('加载仪器列表失败')
     console.error(error)
   } finally {
     loading.value = false
@@ -437,10 +437,10 @@ const handleViewDetail = (row: Tool) => {
   router.push(`/tools/${row.id}`)
 }
 
-// 删除工具
+// 删除仪器
 const handleDelete = async (row: Tool) => {
   try {
-    await ElMessageBox.confirm('确定要删除该工具吗？此操作不可恢复！', '警告', {
+    await ElMessageBox.confirm('确定要删除该仪器吗？此操作不可恢复！', '警告', {
       type: 'error',
       confirmButtonText: '确定删除'
     })

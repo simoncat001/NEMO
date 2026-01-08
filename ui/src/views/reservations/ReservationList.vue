@@ -92,7 +92,7 @@
         style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column label="工具" min-width="150">
+        <el-table-column label="仪器" min-width="150">
           <template #default="{ row }">
             {{ row.tool?.name || '-' }}
           </template>
@@ -199,10 +199,10 @@
         :rules="formRules"
         label-width="120px"
       >
-        <el-form-item label="工具" prop="tool_id">
+        <el-form-item label="仪器" prop="tool_id">
           <el-select
             v-model="formData.tool_id"
-            placeholder="请选择工具"
+            placeholder="请选择仪器"
             filterable
             style="width: 100%"
           >
@@ -366,7 +366,7 @@ const updateTimeFromSlider = () => {
 const loading = ref(false)
 const tableData = ref<Reservation[]>([])
 
-// 工具列表
+// 仪器列表
 const tools = ref<Tool[]>([])
 
 // 过滤器
@@ -407,19 +407,19 @@ const formData = reactive<Partial<Reservation>>({
 })
 
 const formRules: FormRules = {
-  tool_id: [{ required: true, message: '请选择工具', trigger: 'change' }],
+  tool_id: [{ required: true, message: '请选择仪器', trigger: 'change' }],
   project_id: [{ required: true, message: '请选择项目', trigger: 'change' }],
   start: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
   end: [{ required: true, message: '请选择结束时间', trigger: 'change' }]
 }
 
-// 加载工具列表
+// 加载仪器列表
 const loadTools = async () => {
   try {
     const response = await getTools({ skip: 0, limit: 1000 })
     tools.value = Array.isArray(response) ? response : response.data || []
   } catch (error) {
-    console.error('加载工具列表失败:', error)
+    console.error('加载仪器列表失败:', error)
   }
 }
 

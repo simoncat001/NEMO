@@ -1,7 +1,7 @@
 <template>
     <div class="tool-control-container">
         <el-row :gutter="20">
-            <!-- 左侧工具列表 -->
+            <!-- 左侧仪器列表 -->
             <el-col :span="6">
                 <el-card class="tool-list-card">
                     <template #header>
@@ -16,10 +16,10 @@
                                 />
                             </el-select>
                             <el-divider style="margin: 10px 0" />
-                            <span>工具列表</span>
+                            <span>仪器列表</span>
                             <el-input
                                 v-model="searchQuery"
-                                placeholder="搜索工具..."
+                                placeholder="搜索仪器..."
                                 prefix-icon="Search"
                                 clearable
                                 class="search-input"
@@ -100,7 +100,7 @@
                         </div>
                     </div>
                 </el-card>
-                <el-empty v-else description="请选择一个工具" />
+                <el-empty v-else description="请选择一个仪器" />
             </el-col>
         </el-row>
     </div>
@@ -137,7 +137,7 @@ watch(selectedProjectId, () => {
     isToolInUse.value = false
 })
 
-// 过滤工具列表
+// 过滤仪器列表
 const filteredTools = computed(() => {
     if (!searchQuery.value) return tools.value
     const query = searchQuery.value.toLowerCase()
@@ -170,13 +170,13 @@ const getProjectName = (id: number | undefined) => {
     return project ? project.name : ''
 }
 
-// 选择工具
+// 选择仪器
 const selectTool = async (tool: Tool) => {
     selectedTool.value = tool
     await checkToolStatus()
 }
 
-// 检查工具状态
+// 检查仪器状态
 const checkToolStatus = async () => {
     if (!selectedTool.value) return
     try {
@@ -186,7 +186,7 @@ const checkToolStatus = async () => {
     }
 }
 
-// 启用工具
+// 启用仪器
 const handleEnableTool = async () => {
     if (!selectedTool.value || !currentUser.value) return
     if (!selectedProjectId.value) {
@@ -211,7 +211,7 @@ const handleEnableTool = async () => {
     }
 }
 
-// 禁用工具
+// 禁用仪器
 const handleDisableTool = async () => {
     if (!selectedTool.value) return
 

@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { Bill, BillGenerationRequest, PaginationParams } from '@/types'
+import type { Bill, BillGenerationRequest, BillUpdateRequest, PaginationParams } from '@/types'
 
 // ==================== 账单管理 ====================
 
@@ -15,4 +15,11 @@ export const getBills = (params: PaginationParams & { account_id?: number }) => 
  */
 export const generateBills = (data: BillGenerationRequest) => {
     return request.post<Bill[]>('/billing/generate', data)
+}
+
+/**
+ * 更新账单（管理员）
+ */
+export const updateBill = (billId: number, data: BillUpdateRequest) => {
+    return request.put<Bill>(`/billing/${billId}`, data)
 }

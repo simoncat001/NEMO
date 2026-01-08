@@ -54,6 +54,7 @@ class ToolService:
             name=tool_in.name,
             visible=tool_in.visible,
             operational=tool_in.operational,
+            requires_reservation=tool_in.requires_reservation,
             description=tool_in.description,
             _location=tool_in.location,
             _phone_number=tool_in.phone_number,

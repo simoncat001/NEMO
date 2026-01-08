@@ -32,7 +32,7 @@
 
       <el-menu-item index="/tools" v-if="authStore.isStaff()">
         <el-icon><Tools /></el-icon>
-        <template #title>工具管理</template>
+        <template #title>仪器管理</template>
       </el-menu-item>
 
       <el-menu-item index="/tool-control" v-if="authStore.isStaff()">
@@ -76,7 +76,6 @@
           <span>系统管理</span>
         </template>
         <el-menu-item index="/users">用户管理</el-menu-item>
-        <el-menu-item index="/accounts">账户管理</el-menu-item>
         <el-menu-item index="/billing">账单管理</el-menu-item>
         <el-menu-item index="/staff-charges">员工收费</el-menu-item>
         <el-menu-item index="/configurations">配置管理</el-menu-item>

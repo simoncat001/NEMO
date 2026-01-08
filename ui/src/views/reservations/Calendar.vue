@@ -20,7 +20,7 @@
           <el-space>
             <el-select
               v-model="selectedTool"
-              placeholder="筛选工具"
+              placeholder="筛选仪器"
               clearable
               filterable
               style="width: 200px"
@@ -74,7 +74,7 @@
                     <el-icon><Clock /></el-icon>
                     {{ formatTime(reservation.start) }} - {{ formatTime(reservation.end) }}
                     <br />
-                    {{ reservation.tool?.name || '未指定工具' }}
+                    {{ reservation.tool?.name || '未指定仪器' }}
                   </div>
                 </el-tooltip>
               </div>
@@ -163,7 +163,7 @@
         <el-descriptions-item label="预约ID">
           {{ selectedReservation.id }}
         </el-descriptions-item>
-        <el-descriptions-item label="工具">
+        <el-descriptions-item label="仪器">
           {{ selectedReservation.tool?.name || '-' }}
         </el-descriptions-item>
         <el-descriptions-item label="用户">
@@ -235,10 +235,10 @@
         :rules="formRules"
         label-width="120px"
       >
-        <el-form-item label="工具" prop="tool_id">
+        <el-form-item label="仪器" prop="tool_id">
           <el-select
             v-model="formData.tool_id"
-            placeholder="请选择工具"
+            placeholder="请选择仪器"
             filterable
             style="width: 100%"
           >
@@ -433,7 +433,7 @@ const formData = reactive<Partial<Reservation>>({
 })
 
 const formRules: FormRules = {
-  tool_id: [{ required: true, message: '请选择工具', trigger: 'change' }],
+  tool_id: [{ required: true, message: '请选择仪器', trigger: 'change' }],
   project_id: [{ required: true, message: '请选择项目', trigger: 'change' }],
   start: [{ required: true, message: '请选择开始时间', trigger: 'change' }],
   end: [{ required: true, message: '请选择结束时间', trigger: 'change' }]
@@ -465,13 +465,13 @@ const weekDays = computed(() => {
   })
 })
 
-// 加载工具列表
+// 加载仪器列表
 const loadTools = async () => {
   try {
     const response = await getTools({ skip: 0, limit: 1000 })
     tools.value = Array.isArray(response) ? response : response.data || []
   } catch (error) {
-    console.error('加载工具列表失败:', error)
+    console.error('加载仪器列表失败:', error)
   }
 }
 
@@ -558,7 +558,7 @@ const getReservationStyle = (reservation: Reservation) => {
 // 获取提示内容
 const getTooltipContent = (reservation: Reservation) => {
   return `
-    工具: ${reservation.tool?.name || '-'}
+    仪器: ${reservation.tool?.name || '-'}
     用户: ${reservation.user?.username || '-'}
     时间: ${formatDateTime(reservation.start)} - ${formatDateTime(reservation.end)}
     ${reservation.additional_information ? `备注: ${reservation.additional_information}` : ''}

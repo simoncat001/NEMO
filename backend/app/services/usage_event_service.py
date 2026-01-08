@@ -5,13 +5,134 @@ from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.models.bill import Bill
+from app.models.reservation import Reservation
+from app.models.tool import Tool
 from app.models.usage_event import UsageEvent
 from app.models.tool_rate import ToolRate
-from app.schemas.usage_event import UsageEventCreate, UsageEventEnd, UsageEventUpdate
+from app.schemas.usage_event import UsageEventCreate, UsageEventEnd, UsageEventUpdate, UsageEventSyncResult
 
 
 class UsageEventService:
     """使用记录服务"""
+
+    @staticmethod
+    def _to_naive(dt: Optional[datetime]) -> Optional[datetime]:
+        if dt is None:
+            return None
+        if dt.tzinfo is not None:
+            return dt.replace(tzinfo=None)
+        return dt
+
+    @staticmethod
+    async def sync_from_reservations(
+        db: AsyncSession,
+        include_missed: bool = False,
+        lookback_days: Optional[int] = None,
+        user_id: Optional[int] = None,
+        tool_id: Optional[int] = None,
+    ) -> UsageEventSyncResult:
+        """将已结束的预约同步为使用记录。
+
+        Notes:
+        - 预约的“已完成”通常表现为 `end < now` 且未取消。
+        - 该项目历史上提供了独立脚本 `sync_reservation_usage.py`，但未集成到 API。
+        - 这里的去重策略：同一 tool/user 且 start 落在预约窗口附近则认为已存在。
+        """
+        # NOTE: In this project, reservation timestamps are stored/compared in
+        # DB-local time (see MySQL `NOW()` usage). Using UTC here can cause
+        # already-ended reservations to be incorrectly treated as "not ended".
+        now = datetime.now()
+
+        reservation_filters = [
+            Reservation.end < now,
+            Reservation.cancelled == False,
+        ]
+        if user_id is not None:
+            reservation_filters.append(Reservation.user_id == user_id)
+        if tool_id is not None:
+            reservation_filters.append(Reservation.tool_id == tool_id)
+        if not include_missed:
+            reservation_filters.append(Reservation.missed == False)
+        if lookback_days is not None:
+            reservation_filters.append(Reservation.end >= (now - timedelta(days=lookback_days)))
+
+        reservation_query = select(Reservation).where(and_(*reservation_filters))
+        res_result = await db.execute(reservation_query)
+        reservations = list(res_result.scalars().all())
+
+        scanned = len(reservations)
+        created = 0
+        skipped_existing = 0
+        skipped_missing_tool = 0
+
+        max_has_ended = await db.scalar(select(func.max(UsageEvent.has_ended)))
+        next_has_ended = (max_has_ended or 0) + 1
+
+        for res in reservations:
+            # tool_id can be NULL in schema; skip those.
+            if res.tool_id is None:
+                skipped_missing_tool += 1
+                continue
+
+            # Check for an existing usage event that overlaps the reservation window.
+            usage_exists_query = (
+                select(UsageEvent.id)
+                .where(
+                    and_(
+                        UsageEvent.tool_id == res.tool_id,
+                        UsageEvent.user_id == res.user_id,
+                        UsageEvent.start >= (res.start - timedelta(minutes=5)),
+                        UsageEvent.start <= res.end,
+                    )
+                )
+                .limit(1)
+            )
+            existing_id = await db.scalar(usage_exists_query)
+            if existing_id is not None:
+                skipped_existing += 1
+                continue
+
+            tool = await db.get(Tool, res.tool_id)
+            if not tool:
+                skipped_missing_tool += 1
+                continue
+
+            start = UsageEventService._to_naive(res.start)
+            end = UsageEventService._to_naive(res.end)
+
+            usage_event = UsageEvent(
+                user_id=res.user_id,
+                operator_id=res.user_id,
+                tool_id=res.tool_id,
+                project_id=res.project_id,
+                start=start,
+                end=end,
+                remote_work=False,
+                has_ended=next_has_ended,
+            )
+
+            # Calculate cost
+            amount = 0.0
+            if tool.price_type == 1:  # Hourly
+                base_price = float(tool.price_per_hour) if tool.price_per_hour else 0.0
+                amount = await UsageEventService._calculate_cost(db, tool.id, start, end, base_price)
+            else:  # Per usage
+                amount = float(tool.price_per_use) if tool.price_per_use else 0.0
+            usage_event.amount = amount
+
+            db.add(usage_event)
+            created += 1
+            next_has_ended += 1
+
+        await db.commit()
+
+        return UsageEventSyncResult(
+            scanned=scanned,
+            created=created,
+            skipped_existing=skipped_existing,
+            skipped_missing_tool=skipped_missing_tool,
+        )
 
     @staticmethod
     async def get_usage_events(
@@ -89,8 +210,8 @@ class UsageEventService:
         event = UsageEvent(**event_dict)
         db.add(event)
         await db.commit()
-        await db.refresh(event)
-        return event
+        loaded = await UsageEventService.get_usage_event(db, event.id)
+        return loaded or event
 
     @staticmethod
     async def _calculate_cost(db: AsyncSession, tool_id: int, start: datetime, end: datetime, base_price_per_hour: float) -> float:
@@ -247,8 +368,7 @@ class UsageEventService:
         event.has_ended = max_has_ended + 1
         
         await db.commit()
-        await db.refresh(event)
-        return event
+        return await UsageEventService.get_usage_event(db, event_id)
 
     @staticmethod
     async def update_usage_event(
@@ -257,10 +377,7 @@ class UsageEventService:
         event_data: UsageEventUpdate
     ) -> Optional[UsageEvent]:
         """更新使用记录"""
-        result = await db.execute(
-            select(UsageEvent).where(UsageEvent.id == event_id)
-        )
-        event = result.scalar_one_or_none()
+        event = await UsageEventService.get_usage_event(db, event_id)
         
         if not event:
             return None
@@ -270,8 +387,7 @@ class UsageEventService:
             setattr(event, field, value)
         
         await db.commit()
-        await db.refresh(event)
-        return event
+        return await UsageEventService.get_usage_event(db, event_id)
 
     @staticmethod
     async def delete_usage_event(db: AsyncSession, event_id: int) -> bool:
@@ -296,6 +412,12 @@ class UsageEventService:
         """获取工具当前的使用记录"""
         result = await db.execute(
             select(UsageEvent)
+            .options(
+                selectinload(UsageEvent.user),
+                selectinload(UsageEvent.operator),
+                selectinload(UsageEvent.tool),
+                selectinload(UsageEvent.project),
+            )
             .where(
                 and_(
                     UsageEvent.tool_id == tool_id,
@@ -314,7 +436,12 @@ class UsageEventService:
         """获取用户当前的所有使用记录"""
         result = await db.execute(
             select(UsageEvent)
-            .options(selectinload(UsageEvent.tool))
+            .options(
+                selectinload(UsageEvent.user),
+                selectinload(UsageEvent.operator),
+                selectinload(UsageEvent.tool),
+                selectinload(UsageEvent.project),
+            )
             .where(
                 and_(
                     UsageEvent.user_id == user_id,
@@ -332,10 +459,7 @@ class UsageEventService:
         validator_id: int
     ) -> Optional[UsageEvent]:
         """验证使用记录"""
-        result = await db.execute(
-            select(UsageEvent).where(UsageEvent.id == event_id)
-        )
-        event = result.scalar_one_or_none()
+        event = await UsageEventService.get_usage_event(db, event_id)
         
         if not event:
             return None
@@ -344,8 +468,8 @@ class UsageEventService:
         event.validated_by_id = validator_id
         
         await db.commit()
-        await db.refresh(event)
-        return event
+        # Reload with relationships for response serialization.
+        return await UsageEventService.get_usage_event(db, event_id)
 
     @staticmethod
     async def waive_usage_event(
@@ -353,22 +477,38 @@ class UsageEventService:
         event_id: int,
         waiver_id: int
     ) -> Optional[UsageEvent]:
-        """豁免使用记录（不计费）"""
-        result = await db.execute(
-            select(UsageEvent).where(UsageEvent.id == event_id)
-        )
-        event = result.scalar_one_or_none()
+        """豁免/取消使用记录（不计费）。
+
+        If the event was already billed, reduce the linked bill total accordingly.
+        """
+        event = await UsageEventService.get_usage_event(db, event_id)
         
         if not event:
             return None
+
+        # Idempotency: don't subtract twice.
+        if event.waived:
+            return event
+
+        # If already billed, subtract from bill total.
+        if event.bill_id is not None:
+            bill = await db.get(Bill, event.bill_id)
+            if bill is not None:
+                try:
+                    bill_total = float(bill.total_amount or 0)
+                except Exception:
+                    bill_total = 0.0
+                event_amount = float(event.amount or 0)
+                new_total = max(0.0, bill_total - event_amount)
+                bill.total_amount = new_total
         
         event.waived = True
         event.waived_on = datetime.utcnow()
         event.waived_by_id = waiver_id
         
         await db.commit()
-        await db.refresh(event)
-        return event
+        # Reload with relationships for response serialization.
+        return await UsageEventService.get_usage_event(db, event_id)
 
     @staticmethod
     async def get_usage_stats(

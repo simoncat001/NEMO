@@ -33,6 +33,7 @@ class AccountTypeResponse(AccountTypeBase):
 class AccountBase(BaseModel):
     """账户基础模型"""
     name: str = Field(..., max_length=100, description="账户名称")
+    user_id: Optional[int] = Field(None, description="绑定的用户ID（每个用户一个账户）")
     note: Optional[str] = Field(None, description="备注")
     type_id: Optional[int] = Field(None, description="账户类型ID")
     start_date: Optional[date] = Field(None, description="开始日期")
@@ -47,6 +48,7 @@ class AccountCreate(AccountBase):
 class AccountUpdate(BaseModel):
     """更新账户"""
     name: Optional[str] = Field(None, max_length=100)
+    user_id: Optional[int] = None
     note: Optional[str] = None
     type_id: Optional[int] = None
     start_date: Optional[date] = None

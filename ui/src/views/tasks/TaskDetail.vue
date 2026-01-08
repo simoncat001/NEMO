@@ -26,7 +26,7 @@
         </el-descriptions-item>
 
         <el-descriptions-item label="紧急程度">{{ task.urgency }}</el-descriptions-item>
-        <el-descriptions-item label="工具">{{ task.tool?.name || '-' }}</el-descriptions-item>
+  <el-descriptions-item label="仪器">{{ task.tool?.name || '-' }}</el-descriptions-item>
 
         <el-descriptions-item label="创建者">{{ task.creator?.username || '-' }}</el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ formatDateTime(task.creation_time) }}</el-descriptions-item>

@@ -275,6 +275,8 @@ export interface TableColumn {
 export interface Bill {
     id: number
     account_id: number
+    user_id?: number
+    username?: string
     reference_number: string
     period_start: string
     period_end: string
@@ -288,8 +290,11 @@ export interface Bill {
 }
 
 export interface BillGenerationRequest {
-    start_date: string
-    end_date: string
     account_ids?: number[]
+}
+
+export interface BillUpdateRequest {
+    status?: string
+    due_date?: string | null
 }
 

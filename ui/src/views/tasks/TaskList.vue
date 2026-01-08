@@ -62,7 +62,7 @@
           </template>
         </el-table-column>
         <el-table-column prop="problem_description" label="问题描述" min-width="200" show-overflow-tooltip />
-        <el-table-column label="工具" width="150">
+        <el-table-column label="仪器" width="150">
           <template #default="{ row }">
             {{ row.tool?.name || '-' }}
           </template>
@@ -182,8 +182,8 @@
             <el-option label="低" value="low" />
           </el-select>
         </el-form-item>
-        <el-form-item label="工具ID" prop="tool_id">
-          <el-input v-model.number="formData.tool_id" placeholder="工具ID（可选）" />
+        <el-form-item label="仪器ID" prop="tool_id">
+          <el-input v-model.number="formData.tool_id" placeholder="仪器ID（可选）" />
         </el-form-item>
         <el-form-item label="分类ID">
           <el-input v-model.number="formData.category_id" placeholder="分类ID（可选）" />

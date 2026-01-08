@@ -5,11 +5,42 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.account import Account, AccountType
+from app.models.user import User
 from app.schemas.account import AccountCreate, AccountTypeCreate, AccountTypeUpdate, AccountUpdate
 
 
 class AccountService:
     """账户服务"""
+
+    @staticmethod
+    async def get_or_create_user_account(db: AsyncSession, user: User) -> Account:
+        """Get or create the single account bound to a user.
+
+        Behavior:
+        - If an account already exists with account.user_id == user.id, return it.
+        - Else, if a legacy account exists named like the username and has NULL user_id, bind it.
+        - Else, create a new account (name=username, user_id=user.id).
+        """
+        existing = await db.scalar(select(Account).where(Account.user_id == user.id))
+        if existing:
+            return existing
+
+        legacy = await db.scalar(
+            select(Account).where(Account.user_id.is_(None), Account.name == user.username)
+        )
+        if legacy:
+            legacy.user_id = user.id
+            if legacy.active is None:
+                legacy.active = True
+            await db.commit()
+            await db.refresh(legacy)
+            return legacy
+
+        account = Account(name=user.username, user_id=user.id, active=True)
+        db.add(account)
+        await db.commit()
+        await db.refresh(account)
+        return account
 
     @staticmethod
     async def get_account_types(

@@ -101,7 +101,7 @@
       >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="name" label="配置名称" min-width="180" />
-        <el-table-column label="工具" width="150">
+        <el-table-column label="仪器" width="150">
           <template #default="{ row }">
             {{ row.tool?.name || '-' }}
           </template>
@@ -204,8 +204,8 @@
         <el-form-item label="配置名称" prop="name">
           <el-input v-model="formData.name" placeholder="请输入配置名称" />
         </el-form-item>
-        <el-form-item label="工具ID" prop="tool_id">
-          <el-input v-model.number="formData.tool_id" placeholder="请输入工具ID" />
+        <el-form-item label="仪器ID" prop="tool_id">
+          <el-input v-model.number="formData.tool_id" placeholder="请输入仪器ID" />
         </el-form-item>
         <el-form-item label="启用状态" prop="enabled">
           <el-switch v-model="formData.enabled" />
@@ -359,7 +359,7 @@ const formData = reactive<Partial<Configuration>>({
 
 const formRules: FormRules = {
   name: [{ required: true, message: '请输入配置名称', trigger: 'blur' }],
-  tool_id: [{ required: true, message: '请输入工具ID', trigger: 'blur' }]
+  tool_id: [{ required: true, message: '请输入仪器ID', trigger: 'blur' }]
 }
 
 // 加载统计数据

@@ -5,8 +5,8 @@ from decimal import Decimal
 
 # Shared properties
 class BillBase(BaseModel):
-    period_start: datetime
-    period_end: datetime
+    period_start: Optional[datetime] = None
+    period_end: Optional[datetime] = None
     due_date: Optional[datetime] = None
     status: Optional[str] = "DRAFT"
 
@@ -19,6 +19,8 @@ class BillCreate(BillBase):
 class BillResponse(BillBase):
     id: int
     account_id: int
+    user_id: Optional[int] = None
+    username: Optional[str] = None
     reference_number: str
     issued_date: datetime
     total_amount: Decimal
@@ -31,6 +33,10 @@ class BillDetail(BillResponse):
     pass
 
 class BillGenerationRequest(BaseModel):
-    start_date: datetime
-    end_date: datetime
-    account_ids: Optional[List[int]] = None # If None, all accounts
+    account_ids: Optional[List[int]] = None  # If None, all accounts
+
+
+class BillUpdate(BaseModel):
+    """管理员编辑账单"""
+    due_date: Optional[datetime] = None
+    status: Optional[str] = None

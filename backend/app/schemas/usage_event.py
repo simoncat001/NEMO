@@ -4,6 +4,27 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class UsageEventUser(BaseModel):
+    id: int
+    username: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UsageEventTool(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UsageEventProject(BaseModel):
+    id: int
+    name: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class UsageEventBase(BaseModel):
     """使用记录基础模型"""
     user_id: int = Field(..., description="使用用户ID")
@@ -49,6 +70,11 @@ class UsageEventResponse(UsageEventBase):
     pre_run_data: Optional[str] = None
     run_data: Optional[str] = None
     amount: float = Field(0.0, description="费用金额")
+
+    # 关联对象（用于列表展示）
+    user: Optional[UsageEventUser] = None
+    tool: Optional[UsageEventTool] = None
+    project: Optional[UsageEventProject] = None
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -72,3 +98,11 @@ class UsageEventStats(BaseModel):
     pending_count: int
     by_tool: dict[int, int]  # tool_id -> count
     by_user: dict[int, int]  # user_id -> count
+
+
+class UsageEventSyncResult(BaseModel):
+    """同步预约到使用记录的结果"""
+    scanned: int
+    created: int
+    skipped_existing: int
+    skipped_missing_tool: int

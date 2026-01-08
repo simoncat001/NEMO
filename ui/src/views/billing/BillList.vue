@@ -19,23 +19,7 @@
           </el-space>
         </el-col>
         <el-col :span="12" style="text-align: right">
-          <el-space>
-            <el-select
-              v-model="filterAccountId"
-              placeholder="按账户筛选"
-              clearable
-              filterable
-              style="width: 200px"
-              @change="loadBills"
-            >
-              <el-option
-                v-for="acc in accountList"
-                :key="acc.id"
-                :label="acc.name"
-                :value="acc.id"
-              />
-            </el-select>
-          </el-space>
+          <el-space />
         </el-col>
       </el-row>
     </el-card>
@@ -51,14 +35,9 @@
       >
         <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="reference_number" label="账单号" min-width="180" />
-        <el-table-column label="账户" min-width="150">
+        <el-table-column label="用户" min-width="140">
           <template #default="{ row }">
-            {{ getAccountName(row.account_id) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="周期" width="220">
-          <template #default="{ row }">
-            {{ formatDate(row.period_start) }} 至 {{ formatDate(row.period_end) }}
+            {{ row.username || (row.user_id ? `#${row.user_id}` : '-') }}
           </template>
         </el-table-column>
         <el-table-column prop="total_amount" label="金额" width="120">
@@ -76,6 +55,12 @@
             {{ formatDateTime(row.issued_date) }}
           </template>
         </el-table-column>
+
+        <el-table-column v-if="authStore.isStaff()" label="操作" width="120" fixed="right">
+          <template #default="{ row }">
+            <el-button size="small" @click="handleOpenEdit(row)">编辑</el-button>
+          </template>
+        </el-table-column>
       </el-table>
       
       <!-- 分页 (简化版，暂不绑定后端分页) -->
@@ -88,46 +73,54 @@
       width="500px"
       @close="resetForm"
     >
-      <el-form
-        ref="formRef"
-        :model="formData"
-        :rules="rules"
-        label-width="100px"
-      >
-        <el-form-item label="时间范围" prop="dateRange">
-          <el-date-picker
-            v-model="formData.dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD"
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item label="目标账户" prop="accountIds">
-          <el-select
-            v-model="formData.accountIds"
-            multiple
-            placeholder="选择账户 (留空则选择所有)"
-            filterable
-            style="width: 100%"
-          >
-            <el-option
-              v-for="acc in accountList"
-              :key="acc.id"
-              :label="acc.name"
-              :value="acc.id"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
+      <div>将历史所有未结算账单按用户合并，并把已验证但未出账的使用记录金额加入账单。</div>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">取消</el-button>
           <el-button type="primary" :loading="submitting" @click="handleSubmit">
             生成
           </el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- 编辑账单对话框 (管理员) -->
+    <el-dialog
+      v-model="editDialogVisible"
+      title="编辑账单"
+      width="500px"
+      @close="resetEditForm"
+    >
+      <el-form
+        ref="editFormRef"
+        :model="editFormData"
+        label-width="100px"
+      >
+        <el-form-item label="状态">
+          <el-select v-model="editFormData.status" placeholder="选择状态" style="width: 100%">
+            <el-option label="DRAFT" value="DRAFT" />
+            <el-option label="ISSUED" value="ISSUED" />
+            <el-option label="PAID" value="PAID" />
+            <el-option label="CANCELLED" value="CANCELLED" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="到期时间">
+          <el-date-picker
+            v-model="editFormData.due_date"
+            type="datetime"
+            placeholder="选择到期时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+            clearable
+          />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="editDialogVisible = false">取消</el-button>
+          <el-button type="primary" :loading="editSubmitting" @click="handleEditSubmit">保存</el-button>
         </span>
       </template>
     </el-dialog>
@@ -138,37 +131,35 @@
 import { ref, reactive, onMounted } from 'vue'
 import { DocumentAdd, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import type { FormInstance, FormRules } from 'element-plus'
-import { getBills, generateBills } from '@/api/billing'
-import { getAccounts } from '@/api/accounts'
-import type { Bill, Account } from '@/types'
-import { formatDateTime, formatDate } from '@/utils/date'
+import type { FormInstance } from 'element-plus'
+import { getBills, generateBills, updateBill } from '@/api/billing'
+import type { Bill } from '@/types'
+import { formatDateTime } from '@/utils/date'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const loading = ref(false)
 const submitting = ref(false)
 const tableData = ref<Bill[]>([])
-const filterAccountId = ref<number | undefined>(undefined)
-const accountList = ref<Account[]>([])
 
 const dialogVisible = ref(false)
 const formRef = ref<FormInstance>()
-const formData = reactive({
-  dateRange: [] as string[],
-  accountIds: [] as number[]
+
+const editDialogVisible = ref(false)
+const editSubmitting = ref(false)
+const editFormRef = ref<FormInstance>()
+const editFormData = reactive({
+  id: 0,
+  status: '' as string,
+  due_date: null as string | null
 })
 
-const rules = reactive<FormRules>({
-  dateRange: [{ required: true, message: '请选择时间范围', trigger: 'change' }]
-})
 
 // 加载账单
 const loadBills = async () => {
   loading.value = true
   try {
     const res = await getBills({
-      account_id: filterAccountId.value,
       skip: 0,
       limit: 100
     })
@@ -191,30 +182,6 @@ const loadBills = async () => {
   }
 }
 
-// 加载账户列表 (用于筛选和下拉)
-const loadAccounts = async () => {
-  try {
-    const res = await getAccounts({ limit: 1000 })
-    // 同上，假设 res 是 Account[] 或者 res.data 是 Account[]
-    // 查看 accounts.py 返回 List[AccountResponse]
-    // 查看 accounts.ts 定义: Request.get<ApiResponse>...
-    // 这里的 getAccounts 引用的是 api/accounts.ts 里的 getAccounts 吗？
-    // api/accounts.ts 里的 getAccounts 是 request.get<ApiResponse<Account[]>>('/accounts'...)
-    // 所以 res 这里应该是 ApiResponse<Account[]>
-    // 但是通常 axios 拦截器会 unwrap data。
-    // 假设未unwrap:
-    const data = (res as any).data || res
-    accountList.value = Array.isArray(data) ? data : []
-  } catch (error) {
-    console.error('加载账户列表失败', error)
-  }
-}
-
-const getAccountName = (id: number) => {
-  const acc = accountList.value.find(a => a.id === id)
-  return acc ? acc.name : `ID: ${id}`
-}
-
 const getStatusType = (status: string) => {
   switch (status) {
     case 'PAID': return 'success'
@@ -228,39 +195,63 @@ const handleOpenGenerate = () => {
   dialogVisible.value = true
 }
 
+const handleOpenEdit = (bill: Bill) => {
+  editFormData.id = bill.id
+  editFormData.status = bill.status
+  editFormData.due_date = bill.due_date || null
+  editDialogVisible.value = true
+}
+
 const resetForm = () => {
   if (formRef.value) formRef.value.resetFields()
-  formData.dateRange = []
-  formData.accountIds = []
+}
+
+const resetEditForm = () => {
+  editFormData.id = 0
+  editFormData.status = ''
+  editFormData.due_date = null
 }
 
 const handleSubmit = async () => {
-  if (!formRef.value) return
-  await formRef.value.validate(async (valid) => {
-    if (valid) {
-      submitting.value = true
-      try {
-        const [start, end] = formData.dateRange
-        await generateBills({
-          start_date: start + ' 00:00:00',
-          end_date: end + ' 23:59:59',
-          account_ids: formData.accountIds.length > 0 ? formData.accountIds : undefined
-        })
-        ElMessage.success('账单生成成功')
-        dialogVisible.value = false
-        loadBills()
-      } catch (error) {
-        console.error(error)
-        ElMessage.error('账单生成失败')
-      } finally {
-        submitting.value = false
-      }
-    }
-  })
+  submitting.value = true
+  try {
+    await generateBills({})
+    ElMessage.success('账单生成成功')
+    dialogVisible.value = false
+    loadBills()
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('账单生成失败')
+  } finally {
+    submitting.value = false
+  }
+}
+
+const handleEditSubmit = async () => {
+  if (!authStore.isStaff()) {
+    ElMessage.error('仅管理员可编辑账单')
+    return
+  }
+  if (!editFormData.id) return
+
+  editSubmitting.value = true
+  try {
+    await updateBill(editFormData.id, {
+      status: editFormData.status,
+      due_date: editFormData.due_date
+    })
+    ElMessage.success('账单更新成功')
+    editDialogVisible.value = false
+    loadBills()
+  } catch (error) {
+    console.error(error)
+    ElMessage.error('账单更新失败')
+  } finally {
+    editSubmitting.value = false
+  }
 }
 
 onMounted(() => {
-  loadAccounts()
   loadBills()
 })
 </script>

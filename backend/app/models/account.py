@@ -9,6 +9,7 @@ from app.db.session import Base
 if TYPE_CHECKING:
     from app.models.project import Project
     from app.models.bill import Bill
+    from app.models.user import User
 
 
 class AccountType(Base):
@@ -32,6 +33,13 @@ class Account(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    # One account per user (treat user as account)
+    user_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"),
+        unique=True,
+        nullable=True,
+        index=True,
+    )
     note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     # 外键
@@ -46,6 +54,7 @@ class Account(Base):
 
     # 关系
     type: Mapped[Optional["AccountType"]] = relationship("AccountType", back_populates="accounts")
+    user: Mapped[Optional["User"]] = relationship("User")
     projects: Mapped[List["Project"]] = relationship("Project", back_populates="account")
     bills: Mapped[List["Bill"]] = relationship("Bill", back_populates="account")
 

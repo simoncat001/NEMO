@@ -11,35 +11,183 @@ from app.models.account import Account
 from app.models.usage_event import UsageEvent
 from app.models.consumable_withdraw import ConsumableWithdraw
 from app.models.staff_charge import StaffCharge
-from app.schemas.bill import BillCreate, BillResponse
+from app.schemas.bill import BillCreate, BillResponse, BillUpdate
+from app.services.account_service import AccountService
+from app.models.user import User
 
 class BillingService:
     @staticmethod
+    async def get_bill_by_id(db: AsyncSession, bill_id: int) -> Optional[Bill]:
+        result = await db.execute(
+            select(Bill)
+            .options(selectinload(Bill.account).selectinload(Account.user))
+            .where(Bill.id == bill_id)
+        )
+        return result.scalars().first()
+
+    @staticmethod
     async def generate_bills(
         db: AsyncSession,
-        start_date: datetime,
-        end_date: datetime,
         account_ids: Optional[List[int]] = None
     ) -> List[Bill]:
-        """为指定时间段生成账单"""
-        # 1. 查找所有有效的账户
-        query = select(Account).where(Account.active == True)
+        """合并生成账单（无周期）：
+
+        - 把历史所有未结算账单按用户合并（金额相加）
+        - 把未生成账单的、且已管理员确认（validated）的使用记录金额加进来
+        """
+        return await BillingService.consolidate_unpaid_bills(db, account_ids)
+
+    @staticmethod
+    async def consolidate_unpaid_bills(
+        db: AsyncSession,
+        account_ids: Optional[List[int]] = None,
+    ) -> List[Bill]:
+        unpaid_statuses = {"DRAFT", "ISSUED"}
+
         if account_ids:
-            query = query.where(Account.id.in_(account_ids))
-        
-        result = await db.execute(query)
-        accounts = result.scalars().all()
-        
-        generated_bills = []
-        
+            accounts = (
+                await db.execute(
+                    select(Account).where(
+                        Account.active == True,
+                        Account.user_id.is_not(None),
+                        Account.id.in_(account_ids),
+                    )
+                )
+            ).scalars().all()
+        else:
+            users = (await db.execute(select(User))).scalars().all()
+            accounts = []
+            for user in users:
+                acc = await AccountService.get_or_create_user_account(db, user)
+                if acc.active and acc.user_id is not None:
+                    accounts.append(acc)
+
+        consolidated: List[Bill] = []
+
         for account in accounts:
-            bill = await BillingService._generate_bill_for_account(
-                db, account, start_date, end_date
-            )
-            if bill:
-                generated_bills.append(bill)
-        
-        return generated_bills
+            if account.user_id is None:
+                continue
+
+            unpaid_bills = (
+                await db.execute(
+                    select(Bill)
+                    .where(
+                        Bill.account_id == account.id,
+                        Bill.status.in_(unpaid_statuses),
+                    )
+                    .order_by(Bill.issued_date.desc())
+                )
+            ).scalars().all()
+
+            # Choose a target unpaid bill to merge into (if any).
+            target_bill: Optional[Bill] = unpaid_bills[0] if unpaid_bills else None
+            other_bills = unpaid_bills[1:] if len(unpaid_bills) > 1 else []
+
+            existing_unpaid_total = Decimal("0")
+            for b in unpaid_bills:
+                if b.total_amount is not None:
+                    existing_unpaid_total += Decimal(str(b.total_amount))
+
+            # Add unbilled, validated usage events (admin-confirmed)
+            usage_events = (
+                await db.execute(
+                    select(UsageEvent).where(
+                        and_(
+                            UsageEvent.user_id == account.user_id,
+                            UsageEvent.bill_id == None,
+                            UsageEvent.validated == True,
+                            UsageEvent.waived == False,
+                        )
+                    )
+                )
+            ).scalars().all()
+
+            # Keep existing behavior for other unbilled items
+            withdraws = (
+                await db.execute(
+                    select(ConsumableWithdraw).where(
+                        and_(
+                            ConsumableWithdraw.user_id == account.user_id,
+                            ConsumableWithdraw.bill_id == None,
+                        )
+                    )
+                )
+            ).scalars().all()
+
+            staff_charges = (
+                await db.execute(
+                    select(StaffCharge).where(
+                        and_(
+                            StaffCharge.customer_id == account.user_id,
+                            StaffCharge.bill_id == None,
+                            StaffCharge.waived == False,
+                            StaffCharge.validated == True,
+                        )
+                    )
+                )
+            ).scalars().all()
+
+            usage_total = sum(float(e.amount or 0) for e in usage_events)
+            consumable_total = sum(float(w.amount or 0) for w in withdraws)
+            staff_total = sum(float(s.amount or 0) for s in staff_charges)
+
+            add_total = Decimal(str(usage_total + consumable_total + staff_total))
+            total_amount = existing_unpaid_total + add_total
+
+            if total_amount == 0 and not unpaid_bills and not usage_events and not withdraws and not staff_charges:
+                continue
+
+            now = datetime.utcnow()
+
+            # If no unpaid bill exists yet, create one; otherwise merge into existing.
+            if target_bill is None:
+                ref_number = f"BILL-{account.id}-{now.strftime('%Y%m%d%H%M%S')}"
+                target_bill = Bill(
+                    account_id=account.id,
+                    reference_number=ref_number,
+                    period_start=now,
+                    period_end=now,
+                    total_amount=Decimal("0"),
+                    status="ISSUED",
+                )
+                db.add(target_bill)
+                await db.flush()
+
+            # Move already-billed items from other unpaid bills onto the target bill
+            other_bill_ids = [b.id for b in other_bills]
+            if other_bill_ids:
+                await db.execute(
+                    update(UsageEvent)
+                    .where(UsageEvent.bill_id.in_(other_bill_ids))
+                    .values(bill_id=target_bill.id)
+                )
+                await db.execute(
+                    update(ConsumableWithdraw)
+                    .where(ConsumableWithdraw.bill_id.in_(other_bill_ids))
+                    .values(bill_id=target_bill.id)
+                )
+                await db.execute(
+                    update(StaffCharge)
+                    .where(StaffCharge.bill_id.in_(other_bill_ids))
+                    .values(bill_id=target_bill.id)
+                )
+                for old in other_bills:
+                    old.status = "CANCELLED"
+
+            # Assign newly billable items to the target bill
+            for e in usage_events:
+                e.bill_id = target_bill.id
+            for w in withdraws:
+                w.bill_id = target_bill.id
+            for s in staff_charges:
+                s.bill_id = target_bill.id
+
+            target_bill.total_amount = total_amount
+
+            await db.commit()
+            consolidated.append((await BillingService.get_bill_by_id(db, target_bill.id)) or target_bill)
+
+        return consolidated
 
     @staticmethod
     async def _generate_bill_for_account(
@@ -48,21 +196,18 @@ class BillingService:
         start_date: datetime,
         end_date: datetime
     ) -> Optional[Bill]:
-        # 查找该账户下未结算的使用记录
-        # 注意: UsageEvent linked to Project, Project linked to Account.
-        # But wait, Project.account_id can change? 
-        # Usually billing is based on the project's account AT THE TIME of usage.
-        # But our model structure is UsageEvent -> Project -> Account.
-        # If Project moves to another account, previous usage might be billed to new account?
-        # Ideally UsageEvent should snapshot account_id, but per current schema we rely on Project relation.
+        # Deprecated: period-based billing is no longer used.
+        # 查找该账户（用户）下未结算的收费项。
+        # New rule: treat user as account, so billing is based on the user bound to the account.
+        if account.user_id is None:
+            return None
         
         # Unbilled Usage Events
         usage_query = (
             select(UsageEvent)
-            .join(UsageEvent.project)
             .where(
                 and_(
-                    UsageEvent.project.has(account_id=account.id),
+                    UsageEvent.user_id == account.user_id,
                     UsageEvent.end >= start_date,
                     UsageEvent.end <= end_date,
                     UsageEvent.bill_id == None,
@@ -78,10 +223,9 @@ class BillingService:
         # Unbilled Consumable Withdraws
         consumable_query = (
             select(ConsumableWithdraw)
-            .join(ConsumableWithdraw.project)
             .where(
                 and_(
-                    ConsumableWithdraw.project.has(account_id=account.id),
+                    ConsumableWithdraw.user_id == account.user_id,
                     ConsumableWithdraw.date >= start_date,
                     ConsumableWithdraw.date <= end_date,
                     ConsumableWithdraw.bill_id == None
@@ -95,9 +239,7 @@ class BillingService:
             select(StaffCharge)
             .where(
                 and_(
-                    # StaffCharge has direct customer_id (User), but bill goes to Project Account?
-                    # StaffCharge has project_id.
-                    StaffCharge.project.has(account_id=account.id),
+                    StaffCharge.customer_id == account.user_id,
                     StaffCharge.end >= start_date,
                     StaffCharge.end <= end_date,
                     StaffCharge.bill_id == None,
@@ -144,9 +286,8 @@ class BillingService:
             s.bill_id = bill.id
             
         await db.commit()
-        await db.refresh(bill)
-        
-        return bill
+        loaded = await BillingService.get_bill_by_id(db, bill.id)
+        return loaded or bill
 
     @staticmethod
     async def get_bills(
@@ -155,10 +296,28 @@ class BillingService:
         limit: int = 100,
         account_id: Optional[int] = None
     ) -> List[Bill]:
-        query = select(Bill)
+        query = select(Bill).options(selectinload(Bill.account).selectinload(Account.user))
         if account_id:
             query = query.where(Bill.account_id == account_id)
         
         query = query.order_by(Bill.issued_date.desc()).offset(skip).limit(limit)
         result = await db.execute(query)
         return result.scalars().all()
+
+    @staticmethod
+    async def update_bill(db: AsyncSession, bill_id: int, bill_in: BillUpdate) -> Optional[Bill]:
+        bill = await db.get(Bill, bill_id)
+        if not bill:
+            return None
+
+        update_data = bill_in.model_dump(exclude_unset=True)
+
+        if "due_date" in update_data and update_data["due_date"] is not None:
+            update_data["due_date"] = update_data["due_date"].replace(tzinfo=None)
+
+        for field, value in update_data.items():
+            setattr(bill, field, value)
+
+        await db.commit()
+        loaded = await BillingService.get_bill_by_id(db, bill_id)
+        return loaded or bill

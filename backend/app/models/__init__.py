@@ -8,6 +8,7 @@ from app.models.tool import Tool
 from app.models.reservation import Reservation
 from app.models.project import Project
 from app.models.account import Account, AccountType
+from app.models.bill import Bill
 from app.models.usage_event import UsageEvent
 from app.models.task import Task, TaskCategory, TaskHistory, TaskUrgency, TaskCategoryStage
 from app.models.staff_charge import StaffCharge
@@ -24,6 +25,7 @@ __all__ = [
     "Project",
     "Account",
     "AccountType",
+    "Bill",
     "UsageEvent",
     "Task",
     "TaskCategory",

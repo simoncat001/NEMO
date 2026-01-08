@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Numeric
+from sqlalchemy import inspect
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm.state import NO_VALUE
 from app.db.session import Base
 
 if TYPE_CHECKING:
@@ -35,6 +37,29 @@ class Bill(Base):
     usage_events = relationship("UsageEvent", backref="bill") # Backref simple approach
     staff_charges = relationship("StaffCharge", backref="bill")
     consumable_withdraws = relationship("ConsumableWithdraw", backref="bill")
+
+    @property
+    def user_id(self) -> Optional[int]:
+        state = inspect(self)
+        if state.attrs.account.loaded_value is NO_VALUE:
+            return None
+        if self.account is None:
+            return None
+        return self.account.user_id
+
+    @property
+    def username(self) -> Optional[str]:
+        state = inspect(self)
+        if state.attrs.account.loaded_value is NO_VALUE:
+            return None
+        if self.account is None:
+            return None
+        account_state = inspect(self.account)
+        if account_state.attrs.user.loaded_value is NO_VALUE:
+            return None
+        if self.account.user is None:
+            return None
+        return self.account.user.username
 
     def __repr__(self):
         return f"<Bill(id={self.id}, ref={self.reference_number}, amount={self.total_amount})>"

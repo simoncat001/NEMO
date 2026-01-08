@@ -96,7 +96,7 @@
         style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column label="工具" min-width="150">
+        <el-table-column label="仪器" min-width="150">
           <template #default="{ row }">
             {{ row.tool?.name || '-' }}
           </template>
@@ -104,6 +104,11 @@
         <el-table-column label="用户" width="120">
           <template #default="{ row }">
             {{ row.user?.username || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="项目" min-width="150">
+          <template #default="{ row }">
+            {{ row.project?.name || '-' }}
           </template>
         </el-table-column>
         <el-table-column prop="start" label="开始时间" width="180">
@@ -159,12 +164,12 @@
                 验证
               </el-button>
               <el-button
-                v-if="!row.validated && !row.waived"
+                v-if="!row.waived"
                 type="info"
                 size="small"
                 @click="handleWaive(row)"
               >
-                豁免
+                取消
               </el-button>
               <el-button
                 type="primary"
@@ -214,8 +219,8 @@
         :rules="formRules"
         label-width="100px"
       >
-        <el-form-item label="工具" prop="tool_id">
-          <el-input v-model.number="formData.tool_id" placeholder="工具ID" />
+        <el-form-item label="仪器" prop="tool_id">
+          <el-input v-model.number="formData.tool_id" placeholder="仪器ID" />
         </el-form-item>
         <el-form-item label="用户" prop="user_id">
           <el-input v-model.number="formData.user_id" placeholder="用户ID" />
@@ -313,7 +318,7 @@ const formData = reactive<Partial<UsageEvent>>({
 })
 
 const formRules: FormRules = {
-  tool_id: [{ required: true, message: '请输入工具ID', trigger: 'blur' }],
+  tool_id: [{ required: true, message: '请输入仪器ID', trigger: 'blur' }],
   user_id: [{ required: true, message: '请输入用户ID', trigger: 'blur' }],
   start: [{ required: true, message: '请选择开始时间', trigger: 'change' }]
 }

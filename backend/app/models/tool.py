@@ -34,6 +34,7 @@ class Tool(Base):
     
     # 工具配置
     reservation_horizon = Column(Integer, default=14, nullable=True)
+    requires_reservation = Column(Boolean, default=True, nullable=False)
     minimum_usage_block_time = Column(Integer, nullable=True)
     maximum_usage_block_time = Column(Integer, nullable=True)
     maximum_reservations_per_day = Column(Integer, nullable=True)
@@ -84,6 +85,44 @@ class Tool(Base):
     
     def __repr__(self):
         return f"<Tool(id={self.id}, name='{self.name}')>"
+
+    # -------------------- Attribute aliases (API-facing) --------------------
+    # The database columns are mapped to underscored attributes to preserve
+    # legacy naming. Pydantic's `from_attributes` expects public attribute names
+    # like `location` and `phone_number`, so expose them here.
+
+    @property
+    def primary_owner_id(self):
+        return self._primary_owner_id
+
+    @primary_owner_id.setter
+    def primary_owner_id(self, value):
+        self._primary_owner_id = value
+
+    @property
+    def location(self):
+        return self._location
+
+    @location.setter
+    def location(self, value):
+        self._location = value
+
+    @property
+    def phone_number(self):
+        return self._phone_number
+
+    @phone_number.setter
+    def phone_number(self, value):
+        self._phone_number = value
+
+    @property
+    def category(self):
+        # Currently stored as an integer foreign key id.
+        return self._category_id
+
+    @category.setter
+    def category(self, value):
+        self._category_id = value
 
 
 """NOTE:

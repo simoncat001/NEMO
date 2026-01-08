@@ -20,7 +20,7 @@ class Project(Base):
     
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     name: Mapped[str] = mapped_column(String(200), unique=True, index=True)
-    application_identifier: Mapped[str] = mapped_column(String(200), unique=True)
+    application_identifier: Mapped[Optional[str]] = mapped_column(String(200), unique=True, nullable=True)
     
     active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     

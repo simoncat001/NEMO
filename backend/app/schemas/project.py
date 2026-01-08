@@ -10,12 +10,13 @@ from pydantic import BaseModel, Field
 class ProjectBase(BaseModel):
     """项目基础模型"""
     name: str = Field(..., min_length=1, max_length=200)
-    application_identifier: str = Field(..., min_length=1, max_length=200)
+    application_identifier: Optional[str] = Field(None, max_length=200)
     active: bool = True
 
 
 class ProjectCreate(ProjectBase):
     """创建项目"""
+    application_identifier: str = Field(..., min_length=1, max_length=200)
     account_id: Optional[int] = None
 
 

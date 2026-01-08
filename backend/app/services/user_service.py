@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 from app.core.security import get_password_hash
+from app.services.account_service import AccountService
 
 
 class UserService:
@@ -80,6 +81,9 @@ class UserService:
         )
         await self.db.commit()
         
+        # Ensure every user has exactly one bound account.
+        await AccountService.get_or_create_user_account(self.db, user)
+
         return user
     
     async def update_user(self, user_id: int, user_in: UserUpdate) -> Optional[User]:

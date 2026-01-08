@@ -4,7 +4,7 @@ API v1 router
 
 from fastapi import APIRouter
 from app.api.v1.endpoints import (
-    users, tools, reservations, auth, accounts, usage_events, tasks, staff_charges, configurations, projects, consumables, billing
+    users, tools, reservations, auth, accounts, usage_events, tasks, staff_charges, configurations, projects, consumables, billing, dashboard
 )
 
 api_router = APIRouter()
@@ -21,4 +21,5 @@ api_router.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 api_router.include_router(staff_charges.router, prefix="/staff-charges", tags=["staff-charges"])
 api_router.include_router(configurations.router, prefix="/configurations", tags=["configurations"])
 api_router.include_router(billing.router, prefix="/billing", tags=["billing"])
+api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 

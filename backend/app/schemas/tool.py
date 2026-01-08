@@ -11,6 +11,7 @@ class ToolBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     visible: bool = True
     operational: bool = False
+    requires_reservation: bool = True
     description: str = ""
     location: Optional[str] = None
     phone_number: Optional[str] = None
@@ -26,6 +27,7 @@ class ToolUpdate(BaseModel):
     name: Optional[str] = None
     visible: Optional[bool] = None
     operational: Optional[bool] = None
+    requires_reservation: Optional[bool] = None
     description: Optional[str] = None
     location: Optional[str] = None
     price_type: Optional[int] = None

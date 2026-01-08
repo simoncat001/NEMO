@@ -58,6 +58,13 @@ class Reservation(Base):
     
     # 问题回答（JSON格式）
     question_data = Column(Text, nullable=True)
+
+    # 关系 - User / Tool / Project
+    user = relationship("User", foreign_keys=[user_id])
+    tool = relationship("Tool", foreign_keys=[tool_id])
+    project = relationship("Project", foreign_keys=[project_id])
+    creator = relationship("User", foreign_keys=[creator_id])
+    cancelled_by = relationship("User", foreign_keys=[cancelled_by_id])
     
     # 关系 - ConfigurationOption
     configuration_options: List["ConfigurationOption"] = relationship(

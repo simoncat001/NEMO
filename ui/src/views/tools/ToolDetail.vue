@@ -1,16 +1,16 @@
 <template>
   <div class="page-container">
-    <!-- 工具基本信息 -->
+    <!-- 仪器基本信息 -->
     <el-card v-loading="loading" class="info-card" shadow="never">
       <template #header>
         <div class="card-header">
           <span class="title">
             <el-icon><Tools /></el-icon>
-            工具详情
+            仪器详情
           </span>
           <el-space>
             <el-button type="primary" :icon="Edit" @click="handleEdit">
-              编辑工具
+              编辑仪器
             </el-button>
             <el-button :icon="Back" @click="handleBack">
               返回列表
@@ -20,10 +20,10 @@
       </template>
 
       <el-descriptions :column="2" border>
-        <el-descriptions-item label="工具ID">
+        <el-descriptions-item label="仪器ID">
           {{ toolDetail.id }}
         </el-descriptions-item>
-        <el-descriptions-item label="工具名称">
+        <el-descriptions-item label="仪器名称">
           <el-text tag="b" size="large">{{ toolDetail.name }}</el-text>
         </el-descriptions-item>
         <el-descriptions-item label="分类">
@@ -79,7 +79,7 @@
 
       <el-alert
         v-if="activeUsage"
-        title="工具使用中"
+        title="仪器使用中"
         type="warning"
         :closable="false"
       >
@@ -107,7 +107,7 @@
         <div class="card-header">
           <span class="title">
             <el-icon><Setting /></el-icon>
-            工具配置
+            仪器配置
           </span>
           <el-button :icon="Refresh" @click="loadConfigurations">
             刷新
@@ -230,7 +230,7 @@
     <!-- 编辑对话框 -->
     <el-dialog
       v-model="editDialogVisible"
-      title="编辑工具"
+      title="编辑仪器"
       width="700px"
       @close="resetForm"
     >
@@ -240,8 +240,8 @@
         :rules="formRules"
         label-width="120px"
       >
-        <el-form-item label="工具名称" prop="name">
-          <el-input v-model="formData.name" placeholder="请输入工具名称" />
+        <el-form-item label="仪器名称" prop="name">
+          <el-input v-model="formData.name" placeholder="请输入仪器名称" />
         </el-form-item>
         <el-form-item label="分类" prop="category">
           <el-input v-model="formData.category" placeholder="请输入分类" />
@@ -254,7 +254,7 @@
             v-model="formData.description"
             type="textarea"
             :rows="4"
-            placeholder="请输入工具描述"
+            placeholder="请输入仪器描述"
           />
         </el-form-item>
         <el-row :gutter="16">
@@ -346,7 +346,7 @@ const route = useRoute()
 const router = useRouter()
 const toolId = Number(route.params.id)
 
-// 工具详情
+// 仪器详情
 const loading = ref(false)
 const toolDetail = ref<Partial<Tool>>({})
 
@@ -381,18 +381,18 @@ const formData = reactive<Partial<Tool>>({
 })
 
 const formRules: FormRules = {
-  name: [{ required: true, message: '请输入工具名称', trigger: 'blur' }],
+  name: [{ required: true, message: '请输入仪器名称', trigger: 'blur' }],
   category: [{ required: true, message: '请输入分类', trigger: 'blur' }]
 }
 
-// 加载工具详情
+// 加载仪器详情
 const loadToolDetail = async () => {
   loading.value = true
   try {
     const response = await getTool(toolId)
     toolDetail.value = response
   } catch (error) {
-    ElMessage.error('加载工具详情失败')
+    ElMessage.error('加载仪器详情失败')
     console.error(error)
   } finally {
     loading.value = false

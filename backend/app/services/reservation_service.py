@@ -6,6 +6,7 @@ from typing import List, Optional
 from datetime import datetime
 from sqlalchemy import select, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from app.models.reservation import Reservation
 from app.schemas.reservation import ReservationCreate, ReservationUpdate
 
@@ -13,6 +14,13 @@ from app.schemas.reservation import ReservationCreate, ReservationUpdate
 class ReservationService:
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    def _reservation_query_with_relations(self):
+        return select(Reservation).options(
+            selectinload(Reservation.user),
+            selectinload(Reservation.tool),
+            selectinload(Reservation.project),
+        )
     
     async def get_reservations(
         self,
@@ -24,7 +32,7 @@ class ReservationService:
         end_date: datetime = None
     ) -> List[Reservation]:
         """获取预约列表"""
-        query = select(Reservation).where(Reservation.cancelled == False)
+        query = self._reservation_query_with_relations().where(Reservation.cancelled == False)
         
         if user_id:
             query = query.where(Reservation.user_id == user_id)
@@ -42,9 +50,9 @@ class ReservationService:
     async def get_reservation(self, reservation_id: int) -> Optional[Reservation]:
         """获取单个预约"""
         result = await self.db.execute(
-            select(Reservation).where(Reservation.id == reservation_id)
+            self._reservation_query_with_relations().where(Reservation.id == reservation_id)
         )
-        return result.scalar_one_or_none()
+        return result.scalars().first()
     
     async def check_reservation_conflict(
         self,
@@ -88,8 +96,8 @@ class ReservationService:
         )
         self.db.add(reservation)
         await self.db.commit()
-        await self.db.refresh(reservation)
-        return reservation
+        loaded = await self.get_reservation(reservation.id)
+        return loaded or reservation
     
     async def update_reservation(
         self,
@@ -107,8 +115,8 @@ class ReservationService:
             setattr(reservation, field, value)
         
         await self.db.commit()
-        await self.db.refresh(reservation)
-        return reservation
+        loaded = await self.get_reservation(reservation_id)
+        return loaded or reservation
     
     async def cancel_reservation(self, reservation_id: int) -> bool:
         """取消预约"""
