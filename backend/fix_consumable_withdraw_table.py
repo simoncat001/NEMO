@@ -4,7 +4,7 @@ connection = pymysql.connect(
     host='localhost',
     user='root',
     password='12345678',
-    database='nemo',
+    database='szlab_appoint',
     charset='utf8mb4'
 )
 

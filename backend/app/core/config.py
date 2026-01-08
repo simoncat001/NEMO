@@ -29,10 +29,10 @@ class Settings(BaseSettings):
     MYSQL_SERVER: str = "localhost"
     MYSQL_USER: str = "root"
     MYSQL_PASSWORD: str = "12345678"
-    MYSQL_DB: str = "nemo"
+    MYSQL_DB: str = "szlab_appoint"
     MYSQL_PORT: int = 3306
     
-    DATABASE_URL: str = "mysql+aiomysql://root:12345678@localhost:3306/nemo"
+    DATABASE_URL: str = "mysql+aiomysql://root:12345678@localhost:3306/szlab_appoint"
     
     # JWT 配置
     SECRET_KEY: str = "your-secret-key-here-please-change-in-production"
