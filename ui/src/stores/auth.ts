@@ -84,6 +84,16 @@ export const useAuthStore = defineStore('auth', () => {
         return user.value?.is_superuser || false
     }
 
+    const isVerified = (): boolean => {
+        return user.value?.is_verified || false
+    }
+
+    const canAccessReservations = (): boolean => {
+        if (!user.value) return false
+        if (user.value.is_superuser || user.value.is_staff) return true
+        return user.value.is_verified
+    }
+
     return {
         user,
         token,
@@ -95,5 +105,7 @@ export const useAuthStore = defineStore('auth', () => {
         hasPermission,
         isStaff,
         isSuperuser,
+        isVerified,
+        canAccessReservations,
     }
 })

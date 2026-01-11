@@ -85,6 +85,13 @@ export const waiveUsageEvent = (eventId: number) => {
     return request.post<ApiResponse<UsageEvent>>(`/usage-events/${eventId}/waive`)
 }
 
+/**
+ * 重新激活（取消豁免）使用记录
+ */
+export const reactivateUsageEvent = (eventId: number) => {
+    return request.post<ApiResponse<UsageEvent>>(`/usage-events/${eventId}/reactivate`)
+}
+
 // ==================== 统计 ====================
 
 /**

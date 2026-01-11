@@ -34,7 +34,13 @@
         style="width: 100%"
       >
         <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="reference_number" label="账单号" min-width="180" />
+        <el-table-column prop="reference_number" label="账单号" min-width="180">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="goDetail(row)">
+              {{ row.reference_number }}
+            </el-button>
+          </template>
+        </el-table-column>
         <el-table-column label="用户" min-width="140">
           <template #default="{ row }">
             {{ row.username || (row.user_id ? `#${row.user_id}` : '-') }}
@@ -56,8 +62,9 @@
           </template>
         </el-table-column>
 
-        <el-table-column v-if="authStore.isStaff()" label="操作" width="120" fixed="right">
+        <el-table-column v-if="authStore.isStaff()" label="操作" width="180" fixed="right">
           <template #default="{ row }">
+            <el-button size="small" @click="goDetail(row)">详情</el-button>
             <el-button size="small" @click="handleOpenEdit(row)">编辑</el-button>
           </template>
         </el-table-column>
@@ -129,6 +136,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { DocumentAdd, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
@@ -138,6 +146,7 @@ import { formatDateTime } from '@/utils/date'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
+const router = useRouter()
 const loading = ref(false)
 const submitting = ref(false)
 const tableData = ref<Bill[]>([])
@@ -200,6 +209,10 @@ const handleOpenEdit = (bill: Bill) => {
   editFormData.status = bill.status
   editFormData.due_date = bill.due_date || null
   editDialogVisible.value = true
+}
+
+const goDetail = (bill: Bill) => {
+  router.push({ name: 'BillDetail', params: { id: bill.id } })
 }
 
 const resetForm = () => {

@@ -33,8 +33,8 @@
         </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.is_active ? 'success' : 'danger'">
-              {{ row.is_active ? '已激活' : '未激活' }}
+            <el-tag :type="getStatusTagType(row)">
+              {{ getStatusLabel(row) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -43,7 +43,7 @@
             {{ formatDateTime(row.date_joined) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
             <template v-if="row.id !== authStore.user?.id">
               <el-button
@@ -61,6 +61,23 @@
                 @click="toggleActive(row, false)"
               >
                 停用
+              </el-button>
+
+              <el-button
+                v-if="!row.is_staff && !row.is_superuser && !row.is_verified"
+                type="primary"
+                size="small"
+                @click="toggleVerified(row, true)"
+              >
+                验证
+              </el-button>
+              <el-button
+                v-if="!row.is_staff && !row.is_superuser && row.is_verified"
+                type="info"
+                size="small"
+                @click="toggleVerified(row, false)"
+              >
+                取消验证
               </el-button>
             </template>
             <el-tag v-else type="info">当前用户</el-tag>
@@ -99,6 +116,20 @@ const loadUsers = async () => {
   }
 }
 
+const getStatusLabel = (row: User): string => {
+  const status = row.status || (!row.is_active ? 'INACTIVE' : row.is_verified ? 'VERIFIED' : 'ACTIVE')
+  if (status === 'VERIFIED') return '已验证'
+  if (status === 'ACTIVE') return '已激活'
+  return '未激活'
+}
+
+const getStatusTagType = (row: User): 'success' | 'warning' | 'danger' | 'info' => {
+  const status = row.status || (!row.is_active ? 'INACTIVE' : row.is_verified ? 'VERIFIED' : 'ACTIVE')
+  if (status === 'VERIFIED') return 'success'
+  if (status === 'ACTIVE') return 'warning'
+  return 'danger'
+}
+
 const toggleActive = async (user: User, isActive: boolean) => {
   const actionText = isActive ? '激活(通过审核)' : '停用'
   try {
@@ -122,6 +153,30 @@ const toggleActive = async (user: User, isActive: boolean) => {
     if (e !== 'cancel') {
         console.error(e)
         ElMessage.error('操作失败')
+    }
+  }
+}
+
+const toggleVerified = async (user: User, isVerified: boolean) => {
+  const actionText = isVerified ? '验证' : '取消验证'
+  try {
+    await ElMessageBox.confirm(
+      `确定要${actionText}用户 "${user.username}" 吗?`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: isVerified ? 'success' : 'warning'
+      }
+    )
+
+    await updateUser(user.id, { is_verified: isVerified })
+    ElMessage.success(`用户已${actionText}`)
+    user.is_verified = isVerified
+  } catch (e) {
+    if (e !== 'cancel') {
+      console.error(e)
+      ElMessage.error('操作失败')
     }
   }
 }

@@ -53,8 +53,8 @@
               {{ userInfo.badge_number || '-' }}
             </el-descriptions-item>
             <el-descriptions-item label="账户状态">
-              <el-tag :type="userInfo.is_active ? 'success' : 'danger'">
-                {{ userInfo.is_active ? '激活' : '停用' }}
+              <el-tag :type="accountStatusTagType">
+                {{ accountStatusLabel }}
               </el-tag>
             </el-descriptions-item>
             <el-descriptions-item label="注册时间">
@@ -312,7 +312,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import {
@@ -330,11 +330,29 @@ import {
 import { getCurrentUser, updateCurrentUser, changePassword } from '@/api/users'
 import type { User as UserType, Reservation, UsageEvent, Task } from '@/types'
 import { formatDateTime } from '@/utils/helpers'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 // 用户信息
 const userInfo = ref<Partial<UserType>>({})
+
+const accountStatusLabel = computed(() => {
+  const status =
+    userInfo.value.status || (!userInfo.value.is_active ? 'INACTIVE' : userInfo.value.is_verified ? 'VERIFIED' : 'ACTIVE')
+  if (status === 'VERIFIED') return '已验证'
+  if (status === 'ACTIVE') return '已激活'
+  return '未激活'
+})
+
+const accountStatusTagType = computed(() => {
+  const status =
+    userInfo.value.status || (!userInfo.value.is_active ? 'INACTIVE' : userInfo.value.is_verified ? 'VERIFIED' : 'ACTIVE')
+  if (status === 'VERIFIED') return 'success'
+  if (status === 'ACTIVE') return 'warning'
+  return 'danger'
+})
 
 // 统计数据
 const stats = reactive({
@@ -512,6 +530,10 @@ const resetPasswordForm = () => {
 
 // 快捷跳转
 const goToReservations = () => {
+  if (!authStore.canAccessReservations()) {
+    ElMessage.warning('账户未验证，无法进入预约页面')
+    return
+  }
   router.push('/reservations')
 }
 

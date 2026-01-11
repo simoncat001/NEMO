@@ -6,6 +6,8 @@ export interface User {
     first_name: string
     last_name: string
     is_active: boolean
+    is_verified: boolean
+    status?: 'INACTIVE' | 'ACTIVE' | 'VERIFIED'
     is_staff: boolean
     is_superuser: boolean
     badge_number?: number
@@ -287,6 +289,56 @@ export interface Bill {
     
     // Optional relations if needed
     account?: Account
+}
+
+export interface BillUserBasic {
+    id: number
+    username: string
+    email: string
+    first_name: string
+    last_name: string
+}
+
+export interface BillUsageEventUser {
+    id: number
+    username: string
+}
+
+export interface BillUsageEventTool {
+    id: number
+    name: string
+}
+
+export interface BillUsageEventProject {
+    id: number
+    name: string
+}
+
+export interface BillUsageEvent {
+    id: number
+    tool_id: number
+    user_id: number
+    operator_id: number
+    project_id: number
+    start: string
+    end?: string
+    has_ended: number
+    validated: boolean
+    validated_by_id?: number
+    waived: boolean
+    waived_on?: string
+    waived_by_id?: number
+    note?: string
+    amount?: number
+
+    user?: BillUsageEventUser
+    tool?: BillUsageEventTool
+    project?: BillUsageEventProject
+}
+
+export interface BillDetail extends Bill {
+    user?: BillUserBasic
+    usage_events: BillUsageEvent[]
 }
 
 export interface BillGenerationRequest {

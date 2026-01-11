@@ -40,7 +40,7 @@
         <template #title>仪器控制</template>
       </el-menu-item>
 
-      <el-sub-menu index="reservations">
+      <el-sub-menu index="reservations" v-if="authStore.canAccessReservations()">
         <template #title>
           <el-icon><Calendar /></el-icon>
           <span>预约系统</span>

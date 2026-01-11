@@ -64,19 +64,25 @@ const routes: RouteRecordRaw[] = [
                 path: 'reservations',
                 name: 'Reservations',
                 component: () => import('@/views/reservations/ReservationList.vue'),
-                meta: { title: '预约列表' },
+                meta: { title: '预约列表', requiresVerified: true },
             },
             {
                 path: 'calendar',
                 name: 'Calendar',
                 component: () => import('@/views/reservations/Calendar.vue'),
-                meta: { title: '预约日历' },
+                meta: { title: '预约日历', requiresVerified: true },
             },
             {
                 path: 'billing',
                 name: 'Billing',
                 component: () => import('@/views/billing/BillList.vue'),
                 meta: { title: '账单管理', requiresStaff: true },
+            },
+            {
+                path: 'billing/:id',
+                name: 'BillDetail',
+                component: () => import('@/views/billing/BillDetail.vue'),
+                meta: { title: '账单详情', requiresStaff: true },
             },
             // 使用记录
             {
@@ -162,6 +168,14 @@ router.beforeEach(
             if (to.meta.requiresStaff && !authStore.isStaff()) {
                 next({ name: 'Dashboard' })
                 return
+            }
+
+            // 检查是否需要已验证（仅对普通用户）
+            if ((to.meta as any).requiresVerified) {
+                if (!authStore.canAccessReservations()) {
+                    next({ name: 'Dashboard' })
+                    return
+                }
             }
         }
 

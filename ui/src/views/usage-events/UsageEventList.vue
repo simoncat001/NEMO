@@ -172,6 +172,14 @@
                 取消
               </el-button>
               <el-button
+                v-else
+                type="success"
+                size="small"
+                @click="handleReactivate(row)"
+              >
+                激活
+              </el-button>
+              <el-button
                 type="primary"
                 size="small"
                 :icon="Edit"
@@ -276,6 +284,7 @@ import {
   endUsageEvent,
   validateUsageEvent,
   waiveUsageEvent,
+  reactivateUsageEvent,
   getUsageEventStats
 } from '@/api/usage-events'
 import type { UsageEvent } from '@/types'
@@ -413,6 +422,23 @@ const handleWaive = async (row: UsageEvent) => {
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('豁免失败')
+      console.error(error)
+    }
+  }
+}
+
+// 重新激活（取消豁免）
+const handleReactivate = async (row: UsageEvent) => {
+  try {
+    await ElMessageBox.confirm('确定要重新激活该使用记录吗？激活后将恢复为已验证状态。', '提示', {
+      type: 'warning'
+    })
+    await reactivateUsageEvent(row.id)
+    ElMessage.success('激活成功')
+    await loadUsageEvents()
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('激活失败')
       console.error(error)
     }
   }
