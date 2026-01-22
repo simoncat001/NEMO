@@ -36,14 +36,5 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         sourcemap: false,
-        rollupOptions: {
-            output: {
-                manualChunks: {
-                    'element-plus': ['element-plus'],
-                    'vue-vendor': ['vue', 'vue-router', 'pinia'],
-                    'utils': ['axios', 'dayjs', 'lodash-es'],
-                },
-            },
-        },
     },
 })

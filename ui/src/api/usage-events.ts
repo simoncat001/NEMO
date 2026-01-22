@@ -12,6 +12,8 @@ export const getUsageEvents = (params?: {
     operator_id?: number
     project_id?: number
     validated?: boolean
+    start_date?: string
+    end_date?: string
     skip?: number
     limit?: number
 }) => {

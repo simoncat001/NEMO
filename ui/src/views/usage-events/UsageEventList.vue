@@ -16,11 +16,54 @@
         <el-col :span="12" style="text-align: right">
           <el-space>
             <el-select
+              v-if="authStore.isStaff()"
+              v-model="filterUserId"
+              placeholder="用户"
+              clearable
+              filterable
+              style="width: 140px"
+              @change="handleFilterChange"
+            >
+              <el-option
+                v-for="u in users"
+                :key="u.id"
+                :label="u.username"
+                :value="u.id"
+              />
+            </el-select>
+
+            <el-select
+              v-model="filterToolId"
+              placeholder="仪器"
+              clearable
+              filterable
+              style="width: 160px"
+              @change="handleFilterChange"
+            >
+              <el-option
+                v-for="tool in tools"
+                :key="tool.id"
+                :label="tool.name"
+                :value="tool.id"
+              />
+            </el-select>
+
+            <el-date-picker
+              v-model="dateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="YYYY-MM-DD"
+              @change="handleFilterChange"
+            />
+
+            <el-select
               v-model="filterValidated"
               placeholder="验证状态"
               clearable
               style="width: 120px"
-              @change="loadUsageEvents"
+              @change="handleFilterChange"
             >
               <el-option label="已验证" :value="true" />
               <el-option label="待验证" :value="false" />
@@ -287,12 +330,21 @@ import {
   reactivateUsageEvent,
   getUsageEventStats
 } from '@/api/usage-events'
-import type { UsageEvent } from '@/types'
+import { getTools } from '@/api/tools'
+import { getUsers } from '@/api/users'
+import type { UsageEvent, Tool, User } from '@/types'
 import { formatDateTime, calcDuration, formatDuration } from '@/utils/helpers'
+import { useAuthStore } from '@/stores/auth'
 
 // 数据列表
 const loading = ref(false)
 const tableData = ref<UsageEvent[]>([])
+
+const authStore = useAuthStore()
+
+// 筛选选项
+const tools = ref<Tool[]>([])
+const users = ref<User[]>([])
 
 // 统计数据
 const showStats = ref(true)
@@ -305,6 +357,9 @@ const stats = ref({
 
 // 过滤器
 const filterValidated = ref<boolean>()
+const filterUserId = ref<number>()
+const filterToolId = ref<number>()
+const dateRange = ref<[string, string]>()
 
 // 分页
 const currentPage = ref(1)
@@ -333,28 +388,69 @@ const formRules: FormRules = {
 }
 
 // 加载统计数据
-const loadStats = async () => {
+const loadStats = async (params?: { tool_id?: number; user_id?: number; start_date?: string; end_date?: string }) => {
   try {
-    const response = await getUsageEventStats()
+    const response = await getUsageEventStats(params)
     stats.value = response || stats.value
   } catch (error) {
     console.error('加载统计数据失败:', error)
   }
 }
 
+const loadTools = async () => {
+  try {
+    const response = await getTools({ skip: 0, limit: 1000 })
+    tools.value = Array.isArray(response) ? response : (response as any).data || []
+  } catch (error) {
+    console.error('加载仪器列表失败:', error)
+  }
+}
+
+const loadUsers = async () => {
+  if (!authStore.isStaff()) return
+  try {
+    const response = await getUsers({ skip: 0, limit: 1000 })
+    users.value = (response as any) || []
+  } catch (error) {
+    console.error('加载用户列表失败:', error)
+  }
+}
+
+const handleFilterChange = async () => {
+  currentPage.value = 1
+  await loadUsageEvents()
+}
+
 // 加载使用记录列表
 const loadUsageEvents = async () => {
   loading.value = true
   try {
-    const params = {
+    const params: any = {
       skip: (currentPage.value - 1) * pageSize.value,
       limit: pageSize.value,
-      ...(filterValidated.value !== undefined && { validated: filterValidated.value })
+      ...(filterValidated.value !== undefined && { validated: filterValidated.value }),
+      ...(filterToolId.value !== undefined && { tool_id: filterToolId.value }),
+      ...(authStore.isStaff() && filterUserId.value !== undefined && { user_id: filterUserId.value }),
     }
+
+    if (dateRange.value) {
+      params.start_date = dateRange.value[0]
+      params.end_date = dateRange.value[1]
+    }
+
     const response = await getUsageEvents(params)
     tableData.value = Array.isArray(response) ? response : (response as any).data || []
     total.value = tableData.value.length
-    await loadStats()
+
+    const statsParams: any = {
+      ...(filterToolId.value !== undefined && { tool_id: filterToolId.value }),
+      ...(authStore.isStaff() && filterUserId.value !== undefined && { user_id: filterUserId.value }),
+    }
+    if (dateRange.value) {
+      statsParams.start_date = dateRange.value[0]
+      statsParams.end_date = dateRange.value[1]
+    }
+    await loadStats(statsParams)
   } catch (error) {
     ElMessage.error('加载使用记录失败')
     console.error(error)
@@ -509,6 +605,8 @@ const resetForm = () => {
 
 // 初始化
 onMounted(() => {
+  loadTools()
+  loadUsers()
   loadUsageEvents()
 })
 </script>

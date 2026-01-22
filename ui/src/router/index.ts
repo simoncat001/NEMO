@@ -153,9 +153,8 @@ router.beforeEach(
         const authStore = useAuthStore()
 
         // 设置页面标题
-        document.title = to.meta.title
-            ? `${to.meta.title} - NEMO`
-            : 'NEMO - Laboratory Management System'
+        const baseTitle = 'Laboratory Management System'
+        document.title = to.meta.title ? `${to.meta.title} - ${baseTitle}` : baseTitle
 
         // 检查是否需要认证
         if (to.meta.requiresAuth !== false) {

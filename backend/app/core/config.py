@@ -2,12 +2,18 @@
 Core configuration settings
 """
 
+import os
 from typing import List, Optional
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import AnyHttpUrl, field_validator
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        case_sensitive=True,
+        env_file=".env",
+        extra="ignore",
+    )
     # 项目信息
     PROJECT_NAME: str = "NEMO FastAPI Backend"
     VERSION: str = "1.0.0"
@@ -31,8 +37,20 @@ class Settings(BaseSettings):
     MYSQL_PASSWORD: str = "12345678"
     MYSQL_DB: str = "szlab_appoint"
     MYSQL_PORT: int = 3306
-    
-    DATABASE_URL: str = "mysql+aiomysql://root:12345678@localhost:3306/szlab_appoint"
+
+    DATABASE_URL: Optional[str] = None
+
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_database_url(cls, v):
+        if isinstance(v, str) and v:
+            return v
+        user = os.getenv("MYSQL_USER", "root")
+        password = os.getenv("MYSQL_PASSWORD", "12345678")
+        server = os.getenv("MYSQL_SERVER", "localhost")
+        db = os.getenv("MYSQL_DB", "szlab_appoint")
+        port = os.getenv("MYSQL_PORT", "3306")
+        return f"mysql+aiomysql://{user}:{password}@{server}:{port}/{db}"
     
     # JWT 配置
     SECRET_KEY: str = "your-secret-key-here-please-change-in-production"
@@ -43,9 +61,4 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: str = "admin@nemo.local"
     FIRST_SUPERUSER_PASSWORD: str = "admin"
     
-    class Config:
-        case_sensitive = True
-        env_file = ".env"
-
-
 settings = Settings()

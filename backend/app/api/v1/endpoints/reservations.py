@@ -78,6 +78,11 @@ async def create_reservation(
     """创建新预约"""
     # 普通用户只能给自己预约
     if not current_user.is_staff and not current_user.is_superuser:
+        if not getattr(current_user, "is_verified", False):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User is not verified",
+            )
         reservation_in.user_id = current_user.id
 
     service = ReservationService(db)

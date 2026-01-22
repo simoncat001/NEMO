@@ -58,6 +58,39 @@
         </el-col>
         <el-col :span="12" style="text-align: right">
           <el-space>
+            <el-select
+              v-if="authStore.isStaff()"
+              v-model="filterUserId"
+              placeholder="用户"
+              clearable
+              filterable
+              style="width: 140px"
+              @change="handleFilterChange"
+            >
+              <el-option
+                v-for="u in users"
+                :key="u.id"
+                :label="u.username"
+                :value="u.id"
+              />
+            </el-select>
+
+            <el-select
+              v-model="filterToolId"
+              placeholder="仪器"
+              clearable
+              filterable
+              style="width: 160px"
+              @change="handleFilterChange"
+            >
+              <el-option
+                v-for="tool in tools"
+                :key="tool.id"
+                :label="tool.name"
+                :value="tool.id"
+              />
+            </el-select>
+
             <el-date-picker
               v-model="dateRange"
               type="daterange"
@@ -65,14 +98,14 @@
               start-placeholder="开始日期"
               end-placeholder="结束日期"
               value-format="YYYY-MM-DD"
-              @change="loadReservations"
+              @change="handleFilterChange"
             />
             <el-select
               v-model="filterCancelled"
               placeholder="状态"
               clearable
               style="width: 120px"
-              @change="loadReservations"
+              @change="handleFilterChange"
             >
               <el-option label="未取消" :value="false" />
               <el-option label="已取消" :value="true" />
@@ -310,11 +343,14 @@ import {
   cancelReservation
 } from '@/api/reservations'
 import { getTools } from '@/api/tools'
-import type { Reservation, Tool } from '@/types'
+import { getUsers } from '@/api/users'
+import type { Reservation, Tool, User } from '@/types'
 import { formatDateTime } from '@/utils/helpers'
 import dayjs from 'dayjs'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 // 预约时间相关
 const reservationDate = ref(dayjs().format('YYYY-MM-DD'))
@@ -369,9 +405,14 @@ const tableData = ref<Reservation[]>([])
 // 仪器列表
 const tools = ref<Tool[]>([])
 
+// 用户列表（仅 staff 用于筛选）
+const users = ref<User[]>([])
+
 // 过滤器
 const dateRange = ref<[string, string]>()
 const filterCancelled = ref<boolean>()
+const filterUserId = ref<number>()
+const filterToolId = ref<number>()
 
 // 分页
 const currentPage = ref(1)
@@ -423,6 +464,21 @@ const loadTools = async () => {
   }
 }
 
+const loadUsers = async () => {
+  if (!authStore.isStaff()) return
+  try {
+    const response = await getUsers({ skip: 0, limit: 1000 })
+    users.value = (response as any) || []
+  } catch (error) {
+    console.error('加载用户列表失败:', error)
+  }
+}
+
+const handleFilterChange = async () => {
+  currentPage.value = 1
+  await loadReservations()
+}
+
 // 加载预约列表
 const loadReservations = async () => {
   loading.value = true
@@ -430,6 +486,13 @@ const loadReservations = async () => {
     const params: any = {
       skip: (currentPage.value - 1) * pageSize.value,
       limit: pageSize.value
+    }
+
+    if (filterToolId.value !== undefined) {
+      params.tool_id = filterToolId.value
+    }
+    if (authStore.isStaff() && filterUserId.value !== undefined) {
+      params.user_id = filterUserId.value
     }
     
     if (dateRange.value) {
@@ -606,6 +669,7 @@ const resetForm = () => {
 // 初始化
 onMounted(async () => {
   await loadTools()
+  await loadUsers()
   await loadReservations()
 })
 </script>

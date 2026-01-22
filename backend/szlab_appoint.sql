@@ -1,35 +1,9 @@
--- MySQL dump 10.13  Distrib 9.5.0, for macos26.0 (arm64)
---
--- Host: 127.0.0.1    Database: szlab_appoint
--- ------------------------------------------------------
--- Server version	9.5.0-commercial
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Current Database: `szlab_appoint`
---
-
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `szlab_appoint` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-
-USE `szlab_appoint`;
-
---
--- Table structure for table `account`
---
+-- SQL export for database: szlab_appoint
+-- Generated at: 2026-01-21T19:20:08
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS=0;
 
 DROP TABLE IF EXISTS `account`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `account` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -47,25 +21,13 @@ CREATE TABLE `account` (
   CONSTRAINT `fk_account_type` FOREIGN KEY (`type_id`) REFERENCES `account_type` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_account_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `account`
---
-
-LOCK TABLES `account` WRITE;
-/*!40000 ALTER TABLE `account` DISABLE KEYS */;
-INSERT INTO `account` VALUES (1,'liye',1,NULL,NULL,NULL,NULL),(2,'admin',1,NULL,NULL,NULL,1),(3,'simoncat001',1,NULL,NULL,NULL,2);
-/*!40000 ALTER TABLE `account` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `account_type`
---
+INSERT INTO `account` (`id`, `name`, `active`, `note`, `type_id`, `start_date`, `user_id`) VALUES
+(1, 'liye', 1, NULL, NULL, NULL, NULL),
+(2, 'admin', 1, NULL, NULL, NULL, 1),
+(3, 'simoncat001', 1, NULL, NULL, NULL, 2);
 
 DROP TABLE IF EXISTS `account_type`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `account_type` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -73,82 +35,12 @@ CREATE TABLE `account_type` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `account_type`
---
-
-LOCK TABLES `account_type` WRITE;
-/*!40000 ALTER TABLE `account_type` DISABLE KEYS */;
-INSERT INTO `account_type` VALUES (1,'Internal',1),(2,'External',2);
-/*!40000 ALTER TABLE `account_type` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `area`
---
-
-DROP TABLE IF EXISTS `area`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `area` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `category` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `requires_reservation` tinyint(1) DEFAULT '0',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `name` (`name`),
-  KEY `idx_name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `area`
---
-
-LOCK TABLES `area` WRITE;
-/*!40000 ALTER TABLE `area` DISABLE KEYS */;
-/*!40000 ALTER TABLE `area` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `areaaccessrecord`
---
-
-DROP TABLE IF EXISTS `areaaccessrecord`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `areaaccessrecord` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `area_id` int NOT NULL,
-  `customer_id` int NOT NULL,
-  `project_id` int DEFAULT NULL,
-  `start` datetime NOT NULL,
-  `end` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_area` (`area_id`),
-  KEY `idx_customer` (`customer_id`),
-  KEY `idx_start` (`start`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `areaaccessrecord`
---
-
-LOCK TABLES `areaaccessrecord` WRITE;
-/*!40000 ALTER TABLE `areaaccessrecord` DISABLE KEYS */;
-/*!40000 ALTER TABLE `areaaccessrecord` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `bill`
---
+INSERT INTO `account_type` (`id`, `name`, `display_order`) VALUES
+(1, 'Internal', 1),
+(2, 'External', 2);
 
 DROP TABLE IF EXISTS `bill`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `bill` (
   `id` int NOT NULL AUTO_INCREMENT,
   `account_id` int NOT NULL,
@@ -164,25 +56,12 @@ CREATE TABLE `bill` (
   KEY `fk_bill_account` (`account_id`),
   CONSTRAINT `fk_bill_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `bill`
---
-
-LOCK TABLES `bill` WRITE;
-/*!40000 ALTER TABLE `bill` DISABLE KEYS */;
-INSERT INTO `bill` VALUES (1,2,'BILL-1-20260107022511','2026-01-01 00:00:00','2026-01-08 00:00:00','2026-01-07 02:25:11',NULL,50.00,'CANCELLED'),(2,2,'BILL-2-20260107063106','2026-01-07 06:31:06','2026-01-07 06:31:06','2026-01-07 06:31:06',NULL,93.72,'ISSUED');
-/*!40000 ALTER TABLE `bill` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `configuration`
---
+INSERT INTO `bill` (`id`, `account_id`, `reference_number`, `period_start`, `period_end`, `issued_date`, `due_date`, `total_amount`, `status`) VALUES
+(1, 2, 'BILL-1-20260107022511', '2026-01-01 00:00:00', '2026-01-08 00:00:00', '2026-01-07 02:25:11', NULL, 50.00, 'CANCELLED'),
+(2, 2, 'BILL-2-20260107063106', '2026-01-07 06:31:06', '2026-01-07 06:31:06', '2026-01-07 06:31:06', NULL, 143.72, 'ISSUED');
 
 DROP TABLE IF EXISTS `configuration`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `configuration` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -202,24 +81,8 @@ CREATE TABLE `configuration` (
   KEY `fk_config_tool` (`tool_id`),
   CONSTRAINT `fk_config_tool` FOREIGN KEY (`tool_id`) REFERENCES `tool` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `configuration`
---
-
-LOCK TABLES `configuration` WRITE;
-/*!40000 ALTER TABLE `configuration` DISABLE KEYS */;
-/*!40000 ALTER TABLE `configuration` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `configuration_history`
---
 
 DROP TABLE IF EXISTS `configuration_history`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `configuration_history` (
   `id` int NOT NULL AUTO_INCREMENT,
   `configuration_id` int NOT NULL,
@@ -234,50 +97,8 @@ CREATE TABLE `configuration_history` (
   CONSTRAINT `fk_ch_config` FOREIGN KEY (`configuration_id`) REFERENCES `configuration` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_ch_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `configuration_history`
---
-
-LOCK TABLES `configuration_history` WRITE;
-/*!40000 ALTER TABLE `configuration_history` DISABLE KEYS */;
-/*!40000 ALTER TABLE `configuration_history` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `configuration_maintainers`
---
-
-DROP TABLE IF EXISTS `configuration_maintainers`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `configuration_maintainers` (
-  `configuration_id` int NOT NULL,
-  `user_id` int NOT NULL,
-  PRIMARY KEY (`configuration_id`,`user_id`),
-  KEY `fk_cm_user` (`user_id`),
-  CONSTRAINT `fk_cm_config` FOREIGN KEY (`configuration_id`) REFERENCES `configuration` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_cm_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `configuration_maintainers`
---
-
-LOCK TABLES `configuration_maintainers` WRITE;
-/*!40000 ALTER TABLE `configuration_maintainers` DISABLE KEYS */;
-/*!40000 ALTER TABLE `configuration_maintainers` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `configuration_option`
---
 
 DROP TABLE IF EXISTS `configuration_option`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `configuration_option` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -293,24 +114,8 @@ CREATE TABLE `configuration_option` (
   CONSTRAINT `fk_co_config` FOREIGN KEY (`configuration_id`) REFERENCES `configuration` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_co_reservation` FOREIGN KEY (`reservation_id`) REFERENCES `reservation` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `configuration_option`
---
-
-LOCK TABLES `configuration_option` WRITE;
-/*!40000 ALTER TABLE `configuration_option` DISABLE KEYS */;
-/*!40000 ALTER TABLE `configuration_option` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `consumable`
---
 
 DROP TABLE IF EXISTS `consumable`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `consumable` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -327,24 +132,8 @@ CREATE TABLE `consumable` (
   KEY `idx_name` (`name`),
   KEY `idx_visible` (`visible`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `consumable`
---
-
-LOCK TABLES `consumable` WRITE;
-/*!40000 ALTER TABLE `consumable` DISABLE KEYS */;
-/*!40000 ALTER TABLE `consumable` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `consumable_withdraw`
---
 
 DROP TABLE IF EXISTS `consumable_withdraw`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `consumable_withdraw` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
@@ -364,80 +153,20 @@ CREATE TABLE `consumable_withdraw` (
   CONSTRAINT `fk_cw_project` FOREIGN KEY (`project_id`) REFERENCES `project` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_cw_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `consumable_withdraw`
---
-
-LOCK TABLES `consumable_withdraw` WRITE;
-/*!40000 ALTER TABLE `consumable_withdraw` DISABLE KEYS */;
-/*!40000 ALTER TABLE `consumable_withdraw` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `consumablewithdraw`
---
-
-DROP TABLE IF EXISTS `consumablewithdraw`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `consumablewithdraw` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `customer_id` int NOT NULL,
-  `merchant_id` int NOT NULL,
-  `project_id` int DEFAULT NULL,
-  `consumable_id` int NOT NULL,
-  `quantity` int NOT NULL,
-  `date` datetime NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `idx_customer` (`customer_id`),
-  KEY `idx_consumable` (`consumable_id`),
-  KEY `idx_date` (`date`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `consumablewithdraw`
---
-
-LOCK TABLES `consumablewithdraw` WRITE;
-/*!40000 ALTER TABLE `consumablewithdraw` DISABLE KEYS */;
-/*!40000 ALTER TABLE `consumablewithdraw` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `local_auth`
---
 
 DROP TABLE IF EXISTS `local_auth`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `local_auth` (
   `user_id` int NOT NULL,
   `hashed_password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`user_id`),
   CONSTRAINT `local_auth_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `local_auth`
---
-
-LOCK TABLES `local_auth` WRITE;
-/*!40000 ALTER TABLE `local_auth` DISABLE KEYS */;
-INSERT INTO `local_auth` VALUES (1,'$2b$12$ib8T04g/QWhEw562Prdzweb3400DB5mevJ3wdomZugVVccENbXEOK'),(2,'$2b$12$M7b0tAVknjM6u3sZ6HstyOG0eFS3GqAksiUA0L32s1hj4b1x29J/a');
-/*!40000 ALTER TABLE `local_auth` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `project`
---
+INSERT INTO `local_auth` (`user_id`, `hashed_password`) VALUES
+(1, '$2b$12$ib8T04g/QWhEw562Prdzweb3400DB5mevJ3wdomZugVVccENbXEOK'),
+(2, '$2b$12$M7b0tAVknjM6u3sZ6HstyOG0eFS3GqAksiUA0L32s1hj4b1x29J/a');
 
 DROP TABLE IF EXISTS `project`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `project` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -452,25 +181,11 @@ CREATE TABLE `project` (
   KEY `idx_name` (`name`),
   KEY `idx_active` (`active`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `project`
---
-
-LOCK TABLES `project` WRITE;
-/*!40000 ALTER TABLE `project` DISABLE KEYS */;
-INSERT INTO `project` VALUES (1,'Default Project',NULL,1,1,NULL,1);
-/*!40000 ALTER TABLE `project` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `reservation`
---
+INSERT INTO `project` (`id`, `name`, `application_identifier`, `active`, `account_id`, `start_date`, `allow_staff_charges`) VALUES
+(1, 'Default Project', NULL, 1, 1, NULL, 1);
 
 DROP TABLE IF EXISTS `reservation`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `reservation` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tool_id` int NOT NULL,
@@ -496,28 +211,14 @@ CREATE TABLE `reservation` (
   KEY `idx_end` (`end`),
   KEY `area_id` (`area_id`),
   KEY `cancelled_by_id` (`cancelled_by_id`),
-  CONSTRAINT `reservation_ibfk_1` FOREIGN KEY (`area_id`) REFERENCES `area` (`id`),
   CONSTRAINT `reservation_ibfk_2` FOREIGN KEY (`cancelled_by_id`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `reservation`
---
-
-LOCK TABLES `reservation` WRITE;
-/*!40000 ALTER TABLE `reservation` DISABLE KEYS */;
-INSERT INTO `reservation` VALUES (1,1,1,1,1,'2026-01-06 09:00:00','2026-01-06 10:00:00',0,0,0,0,NULL,NULL,NULL,'',0,NULL),(2,1,1,1,1,'2026-01-07 09:00:00','2026-01-07 10:00:00',0,0,0,0,NULL,NULL,NULL,'',0,NULL);
-/*!40000 ALTER TABLE `reservation` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `staff_charge`
---
+INSERT INTO `reservation` (`id`, `tool_id`, `user_id`, `creator_id`, `project_id`, `start`, `end`, `short_notice`, `cancelled`, `missed`, `shortened`, `area_id`, `cancellation_time`, `cancelled_by_id`, `additional_information`, `self_configuration`, `question_data`) VALUES
+(1, 1, 1, 1, 1, '2026-01-06 09:00:00', '2026-01-06 10:00:00', 0, 0, 0, 0, NULL, NULL, NULL, '', 0, NULL),
+(2, 1, 1, 1, 1, '2026-01-07 09:00:00', '2026-01-07 10:00:00', 0, 0, 0, 0, NULL, NULL, NULL, '', 0, NULL);
 
 DROP TABLE IF EXISTS `staff_charge`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `staff_charge` (
   `id` int NOT NULL AUTO_INCREMENT,
   `staff_member_id` int NOT NULL,
@@ -547,55 +248,8 @@ CREATE TABLE `staff_charge` (
   CONSTRAINT `fk_staff_charge_validated` FOREIGN KEY (`validated_by_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_staff_charge_waived` FOREIGN KEY (`waived_by_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `staff_charge`
---
-
-LOCK TABLES `staff_charge` WRITE;
-/*!40000 ALTER TABLE `staff_charge` DISABLE KEYS */;
-/*!40000 ALTER TABLE `staff_charge` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `staffcharge`
---
-
-DROP TABLE IF EXISTS `staffcharge`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `staffcharge` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `staff_member_id` int NOT NULL,
-  `customer_id` int NOT NULL,
-  `project_id` int NOT NULL,
-  `start` datetime NOT NULL,
-  `end` datetime DEFAULT NULL,
-  `note` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
-  PRIMARY KEY (`id`),
-  KEY `idx_staff` (`staff_member_id`),
-  KEY `idx_customer` (`customer_id`),
-  KEY `idx_start` (`start`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `staffcharge`
---
-
-LOCK TABLES `staffcharge` WRITE;
-/*!40000 ALTER TABLE `staffcharge` DISABLE KEYS */;
-/*!40000 ALTER TABLE `staffcharge` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `task`
---
 
 DROP TABLE IF EXISTS `task`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `task` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tool_id` int DEFAULT NULL,
@@ -626,24 +280,8 @@ CREATE TABLE `task` (
   CONSTRAINT `task_ibfk_3` FOREIGN KEY (`last_updated_by_id`) REFERENCES `user` (`id`),
   CONSTRAINT `task_ibfk_4` FOREIGN KEY (`resolver_id`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `task`
---
-
-LOCK TABLES `task` WRITE;
-/*!40000 ALTER TABLE `task` DISABLE KEYS */;
-/*!40000 ALTER TABLE `task` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `task_category`
---
 
 DROP TABLE IF EXISTS `task_category`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `task_category` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -652,54 +290,8 @@ CREATE TABLE `task_category` (
   KEY `ix_task_category_name` (`name`),
   KEY `ix_task_category_id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `task_category`
---
-
-LOCK TABLES `task_category` WRITE;
-/*!40000 ALTER TABLE `task_category` DISABLE KEYS */;
-/*!40000 ALTER TABLE `task_category` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `task_comment`
---
-
-DROP TABLE IF EXISTS `task_comment`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `task_comment` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `task_id` int NOT NULL,
-  `author_id` int NOT NULL,
-  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `creation_date` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `task_id` (`task_id`),
-  KEY `author_id` (`author_id`),
-  CONSTRAINT `task_comment_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `task` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `task_comment_ibfk_2` FOREIGN KEY (`author_id`) REFERENCES `user` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `task_comment`
---
-
-LOCK TABLES `task_comment` WRITE;
-/*!40000 ALTER TABLE `task_comment` DISABLE KEYS */;
-/*!40000 ALTER TABLE `task_comment` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `task_history`
---
 
 DROP TABLE IF EXISTS `task_history`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `task_history` (
   `id` int NOT NULL AUTO_INCREMENT,
   `task_id` int NOT NULL,
@@ -714,51 +306,8 @@ CREATE TABLE `task_history` (
   CONSTRAINT `task_history_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `task` (`id`) ON DELETE CASCADE,
   CONSTRAINT `task_history_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `task_history`
---
-
-LOCK TABLES `task_history` WRITE;
-/*!40000 ALTER TABLE `task_history` DISABLE KEYS */;
-/*!40000 ALTER TABLE `task_history` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `task_image`
---
-
-DROP TABLE IF EXISTS `task_image`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `task_image` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `task_id` int NOT NULL,
-  `image` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
-  `uploaded_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `task_id` (`task_id`),
-  CONSTRAINT `task_image_ibfk_1` FOREIGN KEY (`task_id`) REFERENCES `task` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `task_image`
---
-
-LOCK TABLES `task_image` WRITE;
-/*!40000 ALTER TABLE `task_image` DISABLE KEYS */;
-/*!40000 ALTER TABLE `task_image` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `tool`
---
 
 DROP TABLE IF EXISTS `tool`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tool` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -806,28 +355,13 @@ CREATE TABLE `tool` (
   KEY `idx_operational` (`operational`),
   KEY `primary_owner_id` (`primary_owner_id`),
   KEY `requires_area_access_id` (`requires_area_access_id`),
-  CONSTRAINT `tool_ibfk_1` FOREIGN KEY (`primary_owner_id`) REFERENCES `user` (`id`),
-  CONSTRAINT `tool_ibfk_2` FOREIGN KEY (`requires_area_access_id`) REFERENCES `area` (`id`)
+  CONSTRAINT `tool_ibfk_1` FOREIGN KEY (`primary_owner_id`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `tool`
---
-
-LOCK TABLES `tool` WRITE;
-/*!40000 ALTER TABLE `tool` DISABLE KEYS */;
-INSERT INTO `tool` VALUES (1,'tem',NULL,NULL,1,1,NULL,NULL,NULL,NULL,1,NULL,NULL,NULL,NULL,14,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,0,'','#3788d8',0,0,0,1,0,NULL,1,0.00,0.00,NULL,'',1);
-/*!40000 ALTER TABLE `tool` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `tool_rate`
---
+INSERT INTO `tool` (`id`, `name`, `category_id`, `location`, `visible`, `operational`, `_primary_owner_id`, `_backup_owners`, `_requires_area_access_id`, `grant_physical_access_level_upon_qualification`, `primary_owner_id`, `phone_number`, `requires_area_access_id`, `grant_physical_access_level_upon_qualification_id`, `grant_badge_reader_access_upon_qualification`, `reservation_horizon`, `minimum_usage_block_time`, `maximum_usage_block_time`, `maximum_reservations_per_day`, `minimum_time_between_reservations`, `maximum_future_reservation_time`, `missed_reservation_threshold`, `serial`, `policy_off_between_times`, `policy_off_weekend`, `image`, `tool_calendar_color`, `qualifications_never_expire`, `ask_to_leave_area_when_done_using`, `_operation_mode`, `abuse_weight`, `problem_shutdown_enabled`, `interlock_id`, `price_type`, `price_per_use`, `price_per_hour`, `category`, `description`, `requires_reservation`) VALUES
+(1, 'tem', NULL, NULL, 1, 1, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, NULL, 14, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, 0, '', '#3788d8', 0, 0, 0, 1, 0, NULL, 1, 0.00, 0.00, NULL, '', 1);
 
 DROP TABLE IF EXISTS `tool_rate`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `tool_rate` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tool_id` int NOT NULL,
@@ -839,25 +373,11 @@ CREATE TABLE `tool_rate` (
   KEY `ix_tool_rate_id` (`id`),
   CONSTRAINT `tool_rate_ibfk_1` FOREIGN KEY (`tool_id`) REFERENCES `tool` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `tool_rate`
---
-
-LOCK TABLES `tool_rate` WRITE;
-/*!40000 ALTER TABLE `tool_rate` DISABLE KEYS */;
-INSERT INTO `tool_rate` VALUES (1,1,'00:00:00','23:59:59',50.00);
-/*!40000 ALTER TABLE `tool_rate` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `usage_event`
---
+INSERT INTO `tool_rate` (`id`, `tool_id`, `start_time`, `end_time`, `price`) VALUES
+(1, 1, '00:00:00', '23:59:59', 50.00);
 
 DROP TABLE IF EXISTS `usage_event`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `usage_event` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tool_id` int NOT NULL,
@@ -892,25 +412,13 @@ CREATE TABLE `usage_event` (
   CONSTRAINT `usage_event_ibfk_1` FOREIGN KEY (`validated_by_id`) REFERENCES `user` (`id`),
   CONSTRAINT `usage_event_ibfk_2` FOREIGN KEY (`waived_by_id`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `usage_event`
---
-
-LOCK TABLES `usage_event` WRITE;
-/*!40000 ALTER TABLE `usage_event` DISABLE KEYS */;
-INSERT INTO `usage_event` VALUES (1,1,1,1,1,'2026-01-06 09:00:00.000000','2026-01-06 10:00:00.000000',NULL,1,NULL,50.00,0,1,0,0,0,NULL,NULL,NULL,NULL,1),(2,1,1,1,1,'2026-01-07 09:00:00.000000','2026-01-07 10:00:00.000000',NULL,1,1,50.00,1,1,0,0,1,'2026-01-07 03:31:38',NULL,NULL,NULL,1),(3,1,1,1,1,'2026-01-07 05:38:03.064911','2026-01-07 06:30:30.699081',NULL,1,NULL,43.72,2,1,0,0,0,NULL,'',NULL,NULL,2);
-/*!40000 ALTER TABLE `usage_event` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `user`
---
+INSERT INTO `usage_event` (`id`, `tool_id`, `user_id`, `operator_id`, `project_id`, `start`, `end`, `duration`, `validated_by_id`, `waived_by_id`, `amount`, `has_ended`, `validated`, `remote_work`, `training`, `waived`, `waived_on`, `note`, `pre_run_data`, `run_data`, `bill_id`) VALUES
+(1, 1, 1, 1, 1, '2026-01-06 09:00:00', '2026-01-06 10:00:00', NULL, 1, NULL, 50.00, 0, 1, 0, 0, 0, NULL, NULL, NULL, NULL, 2),
+(2, 1, 1, 1, 1, '2026-01-07 09:00:00', '2026-01-07 10:00:00', NULL, 1, NULL, 50.00, 1, 1, 0, 0, 0, NULL, NULL, NULL, NULL, 2),
+(3, 1, 1, 1, 1, '2026-01-07 05:38:03', '2026-01-07 06:30:30', NULL, 1, NULL, 43.72, 2, 1, 0, 0, 0, NULL, '', NULL, NULL, 2);
 
 DROP TABLE IF EXISTS `user`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `user` (
   `id` int NOT NULL AUTO_INCREMENT,
   `username` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
@@ -927,39 +435,16 @@ CREATE TABLE `user` (
   `physical_access_levels` json DEFAULT NULL,
   `badge_number` int DEFAULT NULL,
   `access_expiration` datetime DEFAULT NULL,
+  `is_verified` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `badge_number` (`badge_number`),
   KEY `idx_username` (`username`),
   KEY `idx_email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `user`
---
+INSERT INTO `user` (`id`, `username`, `first_name`, `last_name`, `email`, `is_active`, `is_staff`, `is_superuser`, `date_joined`, `last_login`, `password`, `training_required`, `physical_access_levels`, `badge_number`, `access_expiration`, `is_verified`) VALUES
+(1, 'admin', 'Admin', 'User', 'admin@example.com', 1, 1, 1, '2026-01-06 17:11:44', '2026-01-07 01:56:16', '$2b$12$ib8T04g/QWhEw562Prdzweb3400DB5mevJ3wdomZugVVccENbXEOK', 0, NULL, NULL, NULL, 0),
+(2, 'simoncat001', '烨', '李', 'simoncat001@hotmail.com', 1, 0, 0, '2026-01-06 19:18:30', '2026-01-06 11:18:59', '$2b$12$M7b0tAVknjM6u3sZ6HstyOG0eFS3GqAksiUA0L32s1hj4b1x29J/a', 0, NULL, NULL, NULL, 1);
 
-LOCK TABLES `user` WRITE;
-/*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,'admin','Admin','User','admin@example.com',1,1,1,'2026-01-06 17:11:44','2026-01-07 01:56:16','$2b$12$ib8T04g/QWhEw562Prdzweb3400DB5mevJ3wdomZugVVccENbXEOK',0,NULL,NULL,NULL),(2,'simoncat001','烨','李','simoncat001@hotmail.com',1,0,0,'2026-01-06 19:18:30','2026-01-06 11:18:59','$2b$12$M7b0tAVknjM6u3sZ6HstyOG0eFS3GqAksiUA0L32s1hj4b1x29J/a',0,NULL,NULL,NULL);
-/*!40000 ALTER TABLE `user` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping events for database 'szlab_appoint'
---
-
---
--- Dumping routines for database 'szlab_appoint'
---
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2026-01-08 15:23:35
+SET FOREIGN_KEY_CHECKS=1;

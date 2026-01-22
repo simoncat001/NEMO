@@ -511,6 +511,47 @@ class UsageEventService:
         return await UsageEventService.get_usage_event(db, event_id)
 
     @staticmethod
+    async def reactivate_usage_event(
+        db: AsyncSession,
+        event_id: int,
+        reactivator_id: int,
+    ) -> Optional[UsageEvent]:
+        """重新激活（取消豁免）使用记录。
+
+        规则：
+        - waived 置回 False，并清空 waived_on/waived_by_id
+        - 激活后恢复为已验证状态（validated=True），并记录 validated_by_id
+        - 若该记录已经关联到账单且之前因为豁免被扣减过账单金额，则加回金额
+        """
+
+        event = await UsageEventService.get_usage_event(db, event_id)
+        if not event:
+            return None
+
+        # Idempotency: if not waived, still ensure it's validated.
+        was_waived = bool(event.waived)
+
+        if was_waived and event.bill_id is not None:
+            bill = await db.get(Bill, event.bill_id)
+            if bill is not None and getattr(bill, "status", None) != "CANCELLED":
+                try:
+                    bill_total = float(bill.total_amount or 0)
+                except Exception:
+                    bill_total = 0.0
+                event_amount = float(event.amount or 0)
+                bill.total_amount = bill_total + event_amount
+
+        event.waived = False
+        event.waived_on = None
+        event.waived_by_id = None
+
+        event.validated = True
+        event.validated_by_id = reactivator_id
+
+        await db.commit()
+        return await UsageEventService.get_usage_event(db, event_id)
+
+    @staticmethod
     async def get_usage_stats(
         db: AsyncSession,
         start_date: Optional[datetime] = None,

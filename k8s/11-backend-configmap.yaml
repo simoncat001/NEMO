@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nemo-backend-config
+  namespace: nemo
+data:
+  MYSQL_SERVER: mysql-service.mysql.svc.cluster.local
+  MYSQL_PORT: "3306"
+  MYSQL_DB: app_db
+  MYSQL_USER: app_user
+  BACKEND_CORS_ORIGINS: '["https://nemo.example.com"]'
+  FIRST_SUPERUSER: admin@nemo.local

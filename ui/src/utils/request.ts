@@ -4,7 +4,7 @@ import router from '@/router'
 
 // 创建 axios 实例
 const service: AxiosInstance = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api/v1',
+    baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
     timeout: 30000,
     headers: {
         'Content-Type': 'application/json',

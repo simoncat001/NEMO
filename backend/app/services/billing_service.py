@@ -2,13 +2,14 @@ from datetime import datetime
 from typing import List, Optional, Tuple
 from decimal import Decimal
 
-from sqlalchemy import select, and_, func, update
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models.bill import Bill
 from app.models.account import Account
 from app.models.usage_event import UsageEvent
+from app.models.project import Project
 from app.models.consumable_withdraw import ConsumableWithdraw
 from app.models.staff_charge import StaffCharge
 from app.schemas.bill import BillCreate, BillResponse, BillUpdate
@@ -24,6 +25,86 @@ class BillingService:
             .where(Bill.id == bill_id)
         )
         return result.scalars().first()
+
+    @staticmethod
+    async def get_bill_detail(db: AsyncSession, bill_id: int) -> Optional[Bill]:
+        """获取账单详情（预加载用户与关联使用记录）"""
+        result = await db.execute(
+            select(Bill)
+            .options(
+                selectinload(Bill.account).selectinload(Account.user),
+                selectinload(Bill.usage_events).selectinload(UsageEvent.tool),
+                selectinload(Bill.usage_events).selectinload(UsageEvent.project),
+                selectinload(Bill.usage_events).selectinload(UsageEvent.user),
+                selectinload(Bill.usage_events).selectinload(UsageEvent.operator),
+            )
+            .where(Bill.id == bill_id)
+        )
+        return result.scalars().first()
+
+    @staticmethod
+    async def attach_unbilled_usage_events_to_bill(db: AsyncSession, bill: Bill) -> int:
+        """把该账号下符合条件但尚未出账的使用记录挂到指定账单。
+
+        规则：按 Project.account_id 归集。
+        仅处理 bill_id 为空、validated=True、waived=False 的 UsageEvent。
+        返回本次关联的记录数。
+        """
+
+        owner_user_id = (
+            await db.execute(select(Account.user_id).where(Account.id == bill.account_id))
+        ).scalars().first()
+
+        # Account-based projects
+        project_ids_subq = select(Project.id).where(Project.account_id == bill.account_id)
+
+        billable_clause = UsageEvent.project_id.in_(project_ids_subq)
+        if owner_user_id is not None:
+            billable_clause = or_(billable_clause, UsageEvent.user_id == owner_user_id)
+
+        moved = 0
+
+        # Repair: move usage events from CANCELLED bills (same account) onto this bill.
+        cancelled_bill_ids_subq = select(Bill.id).where(
+            and_(
+                Bill.account_id == bill.account_id,
+                Bill.status == "CANCELLED",
+                Bill.id != bill.id,
+            )
+        )
+
+        move_stmt = (
+            update(UsageEvent)
+            .where(
+                and_(
+                    UsageEvent.bill_id.in_(cancelled_bill_ids_subq),
+                    billable_clause,
+                )
+            )
+            .values(bill_id=bill.id)
+        )
+        move_result = await db.execute(move_stmt)
+        moved = int(move_result.rowcount or 0)
+
+        # Attach newly billable items that are still unbilled
+        stmt = (
+            update(UsageEvent)
+            .where(
+                and_(
+                    UsageEvent.bill_id == None,
+                    UsageEvent.validated == True,
+                    UsageEvent.waived == False,
+                    billable_clause,
+                )
+            )
+            .values(bill_id=bill.id)
+        )
+
+        result = await db.execute(stmt)
+        await db.commit()
+
+        # rowcount may be None depending on driver; normalize to 0
+        return moved + int(result.rowcount or 0)
 
     @staticmethod
     async def generate_bills(
@@ -88,15 +169,22 @@ class BillingService:
                 if b.total_amount is not None:
                     existing_unpaid_total += Decimal(str(b.total_amount))
 
-            # Add unbilled, validated usage events (admin-confirmed)
+            # Add unbilled, validated usage events billable to this account.
+            # Primary rule: project.account_id == account.id
+            # Fallback: usage_event.user_id == account.user_id (handles inconsistent project->account data)
+            project_ids_subq = select(Project.id).where(Project.account_id == account.id)
             usage_events = (
                 await db.execute(
-                    select(UsageEvent).where(
+                    select(UsageEvent)
+                    .where(
                         and_(
-                            UsageEvent.user_id == account.user_id,
                             UsageEvent.bill_id == None,
                             UsageEvent.validated == True,
                             UsageEvent.waived == False,
+                            or_(
+                                UsageEvent.project_id.in_(project_ids_subq),
+                                UsageEvent.user_id == account.user_id,
+                            ),
                         )
                     )
                 )
@@ -203,18 +291,19 @@ class BillingService:
             return None
         
         # Unbilled Usage Events
+        project_ids_subq = select(Project.id).where(Project.account_id == account.id)
         usage_query = (
             select(UsageEvent)
             .where(
                 and_(
-                    UsageEvent.user_id == account.user_id,
+                    or_(
+                        UsageEvent.project_id.in_(project_ids_subq),
+                        UsageEvent.user_id == account.user_id,
+                    ),
                     UsageEvent.end >= start_date,
                     UsageEvent.end <= end_date,
                     UsageEvent.bill_id == None,
                     UsageEvent.waived == False,
-                    # UsageEvent.validated == True # Assuming validated? Or just ended?
-                    # Let's assume ended implies billable for now, or check business logic.
-                    # Usually pending validation events shouldn't be billed.
                 )
             )
         )

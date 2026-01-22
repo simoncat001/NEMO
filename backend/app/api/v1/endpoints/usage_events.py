@@ -303,3 +303,28 @@ async def waive_usage_event(
             detail="Usage event not found"
         )
     return event
+
+
+@router.post("/{event_id}/reactivate", response_model=UsageEventResponse)
+async def reactivate_usage_event(
+    event_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """重新激活已豁免的使用记录（需要管理员权限）。
+
+    激活后将恢复为已验证状态。
+    """
+    if not current_user.is_staff:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only staff can reactivate usage events",
+        )
+
+    event = await UsageEventService.reactivate_usage_event(db, event_id, current_user.id)
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usage event not found",
+        )
+    return event

@@ -1,7 +1,11 @@
 from datetime import datetime
-from typing import Optional, List
-from pydantic import BaseModel
 from decimal import Decimal
+from typing import List, Optional
+
+from pydantic import BaseModel
+
+from app.schemas.usage_event import UsageEventResponse
+from app.schemas.user import UserBasic
 
 # Shared properties
 class BillBase(BaseModel):
@@ -28,9 +32,14 @@ class BillResponse(BillBase):
     class Config:
         from_attributes = True
 
-class BillDetail(BillResponse):
-    # Potential lines could happen here
-    pass
+class BillDetailResponse(BillResponse):
+    """账单详情：包含关联使用记录与用户基础信息"""
+
+    user: Optional[UserBasic] = None
+    usage_events: List[UsageEventResponse] = []
+
+    class Config:
+        from_attributes = True
 
 class BillGenerationRequest(BaseModel):
     account_ids: Optional[List[int]] = None  # If None, all accounts

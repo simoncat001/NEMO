@@ -3,6 +3,7 @@ User API endpoints
 """
 
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
@@ -25,9 +26,13 @@ async def read_users_me(
 async def get_users(
     skip: int = 0,
     limit: int = 100,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """获取用户列表"""
+    if not (current_user.is_staff or current_user.is_superuser):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
     service = UserService(db)
     users = await service.get_users(skip=skip, limit=limit)
     return users
@@ -36,9 +41,13 @@ async def get_users(
 @router.get("/{user_id}", response_model=User)
 async def get_user(
     user_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """获取单个用户"""
+    if not (current_user.is_staff or current_user.is_superuser) and current_user.id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
     service = UserService(db)
     user = await service.get_user(user_id)
     if not user:
@@ -52,9 +61,13 @@ async def get_user(
 @router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
 async def create_user(
     user_in: UserCreate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """创建新用户"""
+    if not (current_user.is_staff or current_user.is_superuser):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
     service = UserService(db)
     
     # 检查用户名是否已存在
@@ -81,9 +94,22 @@ async def create_user(
 async def update_user(
     user_id: int,
     user_in: UserUpdate,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """更新用户"""
+    is_admin = current_user.is_staff or current_user.is_superuser
+
+    if not is_admin and current_user.id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
+    # Non-admin users cannot change privileged fields.
+    if not is_admin:
+        update_data = user_in.model_dump(exclude_unset=True)
+        forbidden_fields = {"is_active", "is_verified", "is_staff", "is_superuser"}
+        if any(field in update_data for field in forbidden_fields):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
     service = UserService(db)
     user = await service.update_user(user_id, user_in)
     if not user:
@@ -97,9 +123,13 @@ async def update_user(
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
     user_id: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """删除用户"""
+    if not (current_user.is_staff or current_user.is_superuser):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+
     service = UserService(db)
     success = await service.delete_user(user_id)
     if not success:
